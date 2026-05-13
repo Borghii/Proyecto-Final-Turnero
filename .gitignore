@@ -8,9 +8,17 @@
 .idea/
 *.iml
 *.iws
+*.ipr
+out/
 
 # Eclipse workspace, NO proyecto
 .metadata/
+
+# Docker local
+Dockerfile
+docker-compose*.yml
+.dockerignore
+/docker/
 
 # Archivos temporales del sistema
 .DS_Store

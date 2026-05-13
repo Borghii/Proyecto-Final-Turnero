@@ -21,9 +21,14 @@ import model.Usuario;
 public class UsuariosServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
-	private static final String DB_URL = "jdbc:mysql://localhost:3306/test";
-	private static final String DB_USER = "root";
-	private static final String DB_PASSWORD = "";
+	private static final String DB_URL = getEnv("DB_URL", "jdbc:mysql://localhost:3306/test");
+	private static final String DB_USER = getEnv("DB_USER", "root");
+	private static final String DB_PASSWORD = getEnv("DB_PASSWORD", "");
+
+	private static String getEnv(String name, String defaultValue) {
+		String value = System.getenv(name);
+		return value == null || value.isBlank() ? defaultValue : value;
+	}
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)

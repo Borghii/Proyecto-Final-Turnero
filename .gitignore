@@ -1,0 +1,20 @@
+# Compilados de Java / salidas de build
+/build/
+/bin/
+/out/
+*.class
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+
+# Eclipse workspace, NO proyecto
+.metadata/
+
+# Archivos temporales del sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

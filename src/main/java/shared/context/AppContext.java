@@ -17,7 +17,7 @@ import usuario.service.UsuarioService;
 
 public final class AppContext {
 	private static final ConexionDB conexionDB = new ConexionDB(
-			getEnv("DB_URL", "jdbc:mysql://localhost:3306/test"),
+			getEnv("DB_URL", "jdbc:mysql://localhost:3306/turnero"),
 			getEnv("DB_USER", "root"),
 			getEnv("DB_PASSWORD", ""));
 

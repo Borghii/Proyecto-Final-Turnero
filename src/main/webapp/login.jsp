@@ -34,6 +34,26 @@
 				</tr>
 			</table>
 		</form>
+		
+		<br>
+		<hr style="width: 30%;">
+		<br>
+		
+		<h3>No tenes cuenta?</h3>
+		<table>
+			<tr>
+				<td style="padding-right: 20px;">
+					<a href="<%= request.getContextPath() %>/registro-cliente.jsp">
+						<button type="button">Registrarme como cliente</button>
+					</a>
+				</td>
+				<td>
+					<a href="<%= request.getContextPath() %>/registro-negocio.jsp">
+						<button type="button">Registrar mi negocio</button>
+					</a>
+				</td>
+			</tr>
+		</table>
 	</center>
 </body>
 </html>

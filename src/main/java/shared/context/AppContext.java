@@ -1,41 +1,47 @@
 package shared.context;
 
 import auth.service.AuthService;
+import negocio.repository.JdbcNegocioRepository;
 import negocio.repository.NegocioRepository;
 import negocio.service.NegocioService;
+import servicio.repository.JdbcServicioRepository;
 import servicio.repository.ServicioRepository;
 import servicio.service.ServicioService;
 import shared.db.ConexionDB;
+import turno.repository.JdbcTurnoRepository;
 import turno.repository.TurnoRepository;
 import turno.service.TurnoService;
-import turno.validator.TurnoValidator;
+import usuario.repository.JdbcUsuarioRepository;
 import usuario.repository.UsuarioRepository;
 import usuario.service.UsuarioService;
 
 public final class AppContext {
 	private static final ConexionDB conexionDB = new ConexionDB(
-			"jdbc:mysql://localhost:3306/test",
-			"root",
-			"");
+			getEnv("DB_URL", "jdbc:mysql://localhost:3306/test"),
+			getEnv("DB_USER", "root"),
+			getEnv("DB_PASSWORD", ""));
 
-	private static final UsuarioRepository usuarioRepository = new UsuarioRepository(conexionDB);
-	private static final NegocioRepository negocioRepository = new NegocioRepository(conexionDB);
-	private static final ServicioRepository servicioRepository = new ServicioRepository(conexionDB);
-	private static final TurnoRepository turnoRepository = new TurnoRepository(conexionDB);
+	private static final UsuarioRepository usuarioRepository = new JdbcUsuarioRepository(conexionDB);
+	private static final NegocioRepository negocioRepository = new JdbcNegocioRepository(conexionDB);
+	private static final ServicioRepository servicioRepository = new JdbcServicioRepository(conexionDB);
+	private static final TurnoRepository turnoRepository = new JdbcTurnoRepository(conexionDB);
 
-	private static final TurnoValidator turnoValidator = new TurnoValidator();
 
-	private static final AuthService authService = new AuthService(usuarioRepository);
 	private static final UsuarioService usuarioService = new UsuarioService(usuarioRepository);
+	private static final AuthService authService = new AuthService(usuarioService);
 	private static final NegocioService negocioService = new NegocioService(negocioRepository);
 	private static final ServicioService servicioService = new ServicioService(servicioRepository);
 	private static final TurnoService turnoService = new TurnoService(
 			turnoRepository,
 			servicioRepository,
-			usuarioRepository,
-			turnoValidator);
+			usuarioRepository);
 
 	private AppContext() {
+	}
+
+	private static String getEnv(String name, String defaultValue) {
+		String value = System.getenv(name);
+		return value == null || value.isBlank() ? defaultValue : value;
 	}
 
 	public static AuthService getAuthService() {

@@ -1,11 +1,11 @@
 package usuario.repository;
 
-import shared.db.ConexionDB;
+import java.sql.SQLException;
+import java.util.Optional;
 
-public class UsuarioRepository {
-	private final ConexionDB conexionDB;
+import usuario.entity.Usuario;
 
-	public UsuarioRepository(ConexionDB conexionDB) {
-		this.conexionDB = conexionDB;
-	}
+public interface UsuarioRepository {
+	Optional<Usuario> findByMail(String mail) throws SQLException;
+
 }

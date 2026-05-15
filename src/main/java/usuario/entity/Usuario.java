@@ -1,18 +1,20 @@
 package usuario.entity;
 
+import shared.enums.RolEnum;
+
 public class Usuario {
 	private int idUsuario;
 	private String mail;
 	private String pass;
 	private String nombre;
-	private int idRol;
+	private RolEnum role;
 
-	public Usuario(int idUsuario, String mail, String pass, String nombre, int idRol) {
+	public Usuario(int idUsuario, String mail, String pass, String nombre, RolEnum role) {
 		this.idUsuario = idUsuario;
 		this.mail = mail;
 		this.pass = pass;
 		this.nombre = nombre;
-		this.idRol = idRol;
+		this.role = role;
 	}
 
 	public int getIdUsuario() {
@@ -31,7 +33,7 @@ public class Usuario {
 		return nombre;
 	}
 
-	public int getIdRol() {
-		return idRol;
+	public RolEnum getRole() {
+		return role;
 	}
 }

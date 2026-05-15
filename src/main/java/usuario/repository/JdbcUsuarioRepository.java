@@ -7,14 +7,16 @@ import java.sql.SQLException;
 import java.util.Optional;
 
 import shared.db.ConexionDB;
+import shared.enums.RolEnum;
 import usuario.entity.Usuario;
 
 public class JdbcUsuarioRepository implements UsuarioRepository {
 
 	private static final String SELECT_BY_MAIL = """
-			SELECT id_usuario, mail, pass, nombre, id_rol
-			FROM usuarios
-			WHERE mail = ?
+			SELECT u.id_usuario, u.mail, u.pass, u.nombre, r.nombre AS role_name
+			FROM usuarios u
+			JOIN roles r ON r.id_rol = u.id_rol
+			WHERE u.mail = ?
 			""";
 
 
@@ -48,6 +50,6 @@ public class JdbcUsuarioRepository implements UsuarioRepository {
 				resultSet.getString("mail"),
 				resultSet.getString("pass"),
 				resultSet.getString("nombre"),
-				resultSet.getInt("id_rol"));
+				RolEnum.valueOf(resultSet.getString("role_name")));
 	}
 }

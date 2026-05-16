@@ -19,6 +19,18 @@ public class JdbcUsuarioRepository implements UsuarioRepository {
 			WHERE u.mail = ?
 			""";
 
+	private static final String EXISTS_BY_MAIL = """
+			SELECT 1
+			FROM usuarios
+			WHERE mail = ?
+			LIMIT 1
+			""";
+
+	private static final String INSERT_CLIENT = """
+			INSERT INTO usuarios (mail, pass, nombre, id_rol)
+			VALUES (?, ?, ?, ?)
+			""";
+
 
 	private final ConexionDB conexionDB;
 
@@ -42,6 +54,34 @@ public class JdbcUsuarioRepository implements UsuarioRepository {
 			}
 		}
 	}
+
+	@Override
+	public boolean existsByMail(String mail) throws SQLException {
+		try (Connection connection = conexionDB.getConnection();
+				PreparedStatement statement = connection.prepareStatement(EXISTS_BY_MAIL)) {
+
+			statement.setString(1, mail);
+
+			try (ResultSet resultSet = statement.executeQuery()) {
+				return resultSet.next();
+			}
+		}
+	}
+
+	@Override
+	public void save(Usuario usuario) throws SQLException {
+		try (Connection connection = conexionDB.getConnection();
+		     PreparedStatement statement = connection.prepareStatement(INSERT_CLIENT)) {
+
+			statement.setString(1, usuario.getMail());
+			statement.setString(2, usuario.getPass());
+			statement.setString(3, usuario.getNombre());
+			statement.setInt(4, usuario.getRole().getIdRol());
+
+
+			statement.executeUpdate();
+		}
+    }
 
 
 	private Usuario mapUsuario(ResultSet resultSet) throws SQLException {

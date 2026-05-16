@@ -17,6 +17,12 @@ public class Usuario {
 		this.role = role;
 	}
 
+	public Usuario(String mail, String pass, String nombre) {
+		this.mail = mail;
+		this.pass = pass;
+		this.nombre = nombre;
+	}
+
 	public int getIdUsuario() {
 		return idUsuario;
 	}
@@ -35,5 +41,21 @@ public class Usuario {
 
 	public RolEnum getRole() {
 		return role;
+	}
+
+	public void setMail(String mail) {
+		this.mail = mail;
+	}
+
+	public void setPass(String pass) {
+		this.pass = pass;
+	}
+
+	public void setNombre(String nombre) {
+		this.nombre = nombre;
+	}
+
+	public void setRole(RolEnum role) {
+		this.role = role;
 	}
 }

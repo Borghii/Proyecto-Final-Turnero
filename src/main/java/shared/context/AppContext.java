@@ -1,19 +1,24 @@
 package shared.context;
 
 import auth.service.AuthService;
+import auth.service.AuthServiceImpl;
 import negocio.repository.JdbcNegocioRepository;
 import negocio.repository.NegocioRepository;
 import negocio.service.NegocioService;
+import negocio.service.NegocioServiceImpl;
 import servicio.repository.JdbcServicioRepository;
 import servicio.repository.ServicioRepository;
 import servicio.service.ServicioService;
+import servicio.service.ServicioServiceImpl;
 import shared.db.ConexionDB;
 import turno.repository.JdbcTurnoRepository;
 import turno.repository.TurnoRepository;
 import turno.service.TurnoService;
+import turno.service.TurnoServiceImpl;
 import usuario.repository.JdbcUsuarioRepository;
 import usuario.repository.UsuarioRepository;
 import usuario.service.UsuarioService;
+import usuario.service.UsuarioServiceImpl;
 
 public final class AppContext {
 	private static final ConexionDB conexionDB = new ConexionDB(
@@ -27,11 +32,11 @@ public final class AppContext {
 	private static final TurnoRepository turnoRepository = new JdbcTurnoRepository(conexionDB);
 
 
-	private static final UsuarioService usuarioService = new UsuarioService(usuarioRepository);
-	private static final AuthService authService = new AuthService(usuarioService);
-	private static final NegocioService negocioService = new NegocioService(negocioRepository);
-	private static final ServicioService servicioService = new ServicioService(servicioRepository);
-	private static final TurnoService turnoService = new TurnoService(
+	private static final UsuarioService usuarioService = new UsuarioServiceImpl(usuarioRepository);
+	private static final AuthService authService = new AuthServiceImpl(usuarioService);
+	private static final NegocioService negocioService = new NegocioServiceImpl(negocioRepository);
+	private static final ServicioService servicioService = new ServicioServiceImpl(servicioRepository);
+	private static final TurnoService turnoService = new TurnoServiceImpl(
 			turnoRepository,
 			servicioRepository,
 			usuarioRepository);

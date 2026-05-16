@@ -3,6 +3,7 @@ package auth.service;
 import java.sql.SQLException;
 
 import auth.dto.LoginRequest;
+import auth.dto.SignUpClientRequest;
 import shared.exception.AuthenticationException;
 import usuario.entity.Usuario;
 import usuario.service.UsuarioService;
@@ -24,5 +25,18 @@ public class AuthServiceImpl implements AuthService {
 		}
 
 		return usuario;
+	}
+
+	@Override
+	public void signUpClient(SignUpClientRequest signUpClientRequest) throws SQLException {
+
+
+		usuarioService.saveClient(new Usuario(
+				signUpClientRequest.getMail(),
+				signUpClientRequest.getPassword(),
+				signUpClientRequest.getNombre()));
+
+
+
 	}
 }

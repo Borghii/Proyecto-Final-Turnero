@@ -8,4 +8,7 @@ import usuario.entity.Usuario;
 public interface UsuarioRepository {
 	Optional<Usuario> findByMail(String mail) throws SQLException;
 
+	boolean existsByMail(String mail) throws SQLException;
+
+	void save(Usuario usuario) throws SQLException;
 }

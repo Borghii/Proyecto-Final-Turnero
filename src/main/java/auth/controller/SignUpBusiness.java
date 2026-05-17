@@ -8,6 +8,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import shared.web.ViewPaths;
+import shared.web.ViewRenderer;
+
 @WebServlet("/signup/business")
 public class SignUpBusiness extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -15,19 +18,13 @@ public class SignUpBusiness extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		request.getRequestDispatcher("/WEB-INF/views/registro-negocio.jsp").forward(request, response);
+		ViewRenderer.forward(request, response, ViewPaths.SIGNUP_BUSINESS);
 	}
 
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		response.setStatus(HttpServletResponse.SC_NOT_IMPLEMENTED);
-		forwardSignUpBusinessWithError(request, response, "El registro de negocio todavia no esta disponible");
-	}
-
-	private void forwardSignUpBusinessWithError(HttpServletRequest request, HttpServletResponse response, String message)
-			throws ServletException, IOException {
-		request.setAttribute("error", message);
-		request.getRequestDispatcher("/WEB-INF/views/registro-negocio.jsp").forward(request, response);
+		ViewRenderer.forwardWithError(request, response, HttpServletResponse.SC_NOT_IMPLEMENTED,
+				ViewPaths.SIGNUP_BUSINESS, "El registro de negocio todavia no esta disponible");
 	}
 }

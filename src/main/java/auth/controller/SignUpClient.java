@@ -13,6 +13,8 @@ import auth.dto.SignUpClientRequest;
 import auth.service.AuthService;
 import shared.context.AppContext;
 import shared.exception.ValidationException;
+import shared.web.ViewPaths;
+import shared.web.ViewRenderer;
 
 @WebServlet("/signup/client")
 public class SignUpClient extends HttpServlet {
@@ -23,7 +25,7 @@ public class SignUpClient extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		request.getRequestDispatcher("/WEB-INF/views/registro-cliente.jsp").forward(request, response);
+		ViewRenderer.forward(request, response, ViewPaths.SIGNUP_CLIENT);
 	}
 
 	@Override
@@ -39,18 +41,11 @@ public class SignUpClient extends HttpServlet {
 
 			response.sendRedirect(request.getContextPath() + "/login");
 		} catch (ValidationException e) {
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			forwardSignUpWithError(request, response, e.getMessage());
+			ViewRenderer.forwardWithError(request, response, HttpServletResponse.SC_BAD_REQUEST,
+					ViewPaths.SIGNUP_CLIENT, e.getMessage());
 		} catch (SQLException e) {
-			getServletContext().log("Error de base de datos durante el registro de cliente", e);
-			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			forwardSignUpWithError(request, response, "No se pudo completar el registro por un error de base de datos");
+			ViewRenderer.forwardWithError(request, response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+					ViewPaths.SIGNUP_CLIENT, "No se pudo completar el registro por un error de base de datos");
 		}
-	}
-
-	private void forwardSignUpWithError(HttpServletRequest request, HttpServletResponse response, String message)
-			throws ServletException, IOException {
-		request.setAttribute("error", message);
-		request.getRequestDispatcher("/WEB-INF/views/registro-cliente.jsp").forward(request, response);
 	}
 }

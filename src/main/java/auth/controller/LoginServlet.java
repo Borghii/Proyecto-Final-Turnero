@@ -18,6 +18,8 @@ import shared.enums.RolEnum;
 import shared.exception.AuthenticationException;
 import shared.exception.ResourceNotFoundException;
 import shared.exception.ValidationException;
+import shared.web.ViewPaths;
+import shared.web.ViewRenderer;
 import usuario.entity.Usuario;
 
 @WebServlet("/login")
@@ -42,7 +44,7 @@ public class LoginServlet extends HttpServlet {
 			return;
 		}
 
-		request.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(request, response);
+		ViewRenderer.forward(request, response, ViewPaths.LOGIN);
 	}
 
 	@Override
@@ -59,18 +61,18 @@ public class LoginServlet extends HttpServlet {
 
 			response.sendRedirect(getHomeUrl(request, usuario.getRole()));
 		} catch (ValidationException e) {
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			forwardLoginWithError(request, response, e.getMessage());
+			ViewRenderer.forwardWithError(request, response, HttpServletResponse.SC_BAD_REQUEST,
+					ViewPaths.LOGIN, e.getMessage());
 		} catch (ResourceNotFoundException e) {
-			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-			forwardLoginWithError(request, response, e.getMessage());
+			ViewRenderer.forwardWithError(request, response, HttpServletResponse.SC_NOT_FOUND,
+					ViewPaths.LOGIN, e.getMessage());
 		} catch (AuthenticationException e) {
-			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			forwardLoginWithError(request, response, e.getMessage());
+			ViewRenderer.forwardWithError(request, response, HttpServletResponse.SC_UNAUTHORIZED,
+					ViewPaths.LOGIN, e.getMessage());
 		} catch (SQLException e) {
 			getServletContext().log("Error de base de datos durante el login", e);
-			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			forwardLoginWithError(request, response, "No se pudo completar el login por un error de base de datos");
+			ViewRenderer.forwardWithError(request, response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+					ViewPaths.LOGIN, "No se pudo completar el login por un error de base de datos");
 		}
 	}
 
@@ -84,11 +86,5 @@ public class LoginServlet extends HttpServlet {
 		}
 
 		return request.getContextPath() + "/login";
-	}
-
-	private void forwardLoginWithError(HttpServletRequest request, HttpServletResponse response, String message)
-			throws ServletException, IOException {
-		request.setAttribute("error", message);
-		request.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(request, response);
 	}
 }

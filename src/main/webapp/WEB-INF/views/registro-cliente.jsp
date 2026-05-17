@@ -35,7 +35,7 @@
 				</tr>
 				<tr>
 					<td style="padding-top: 15px;">
-						<a href="<%= request.getContextPath() %>/login.jsp">
+						<a href="<%= request.getContextPath() %>/login">
 							<button type="button">Cancelar</button>
 						</a>
 					</td>

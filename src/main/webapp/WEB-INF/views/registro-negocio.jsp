@@ -9,7 +9,6 @@
 	<center>
 		<h1>Registrar mi negocio</h1>
 
-		<%-- Bloque de errores --%>
 		<%
 			String error = (String) request.getAttribute("error");
 			if (error != null) {
@@ -19,14 +18,13 @@
 			}
 		%>
 
-		<%-- Fíjate que acá actualizamos el action al endpoint que me pediste --%>
 		<form method="post" action="<%= request.getContextPath() %>/signup/business">
 			
 			<h3>Datos del Administrador</h3>
 			<table>
 				<tr>
 					<td>Tu Nombre:</td>
-					<td><input name="nombreUsuario" type="text" required></td>
+					<td><input name="nombre" type="text" required></td>
 				</tr>
 				<tr>
 					<td>Mail:</td>

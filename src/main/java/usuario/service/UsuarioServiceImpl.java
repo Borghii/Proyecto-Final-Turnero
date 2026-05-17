@@ -2,7 +2,6 @@ package usuario.service;
 
 import java.sql.SQLException;
 
-import auth.dto.SignUpClientRequest;
 import shared.enums.RolEnum;
 import shared.exception.ResourceNotFoundException;
 import shared.exception.ValidationException;
@@ -34,6 +33,19 @@ public class UsuarioServiceImpl implements UsuarioService {
 		usuario.setRole(RolEnum.CLIENTE);
 
 		usuarioRepository.save(usuario);
+
+	}
+
+	@Override
+	public Usuario saveAdmin(Usuario usuario) throws SQLException {
+
+		if (usuarioRepository.existsByMail(usuario.getMail())) {
+			throw new ValidationException("Ya existe un usuario registrado con el mail " + usuario.getMail());
+		}
+
+		usuario.setRole(RolEnum.ADMIN);
+
+		return usuarioRepository.save(usuario);
 
 	}
 

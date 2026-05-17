@@ -43,12 +43,12 @@
 		<table>
 			<tr>
 				<td style="padding-right: 20px;">
-					<a href="<%= request.getContextPath() %>/registro-cliente.jsp">
+					<a href="<%= request.getContextPath() %>/signup/client">
 						<button type="button">Registrarme como cliente</button>
 					</a>
 				</td>
 				<td>
-					<a href="<%= request.getContextPath() %>/registro-negocio.jsp">
+					<a href="<%= request.getContextPath() %>/signup/business">
 						<button type="button">Registrar mi negocio</button>
 					</a>
 				</td>

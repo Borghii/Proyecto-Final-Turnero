@@ -8,6 +8,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import shared.web.ViewPaths;
+import shared.web.ViewRenderer;
+
 @WebServlet("/admin/home")
 public class AdminHomeServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -15,6 +18,6 @@ public class AdminHomeServlet extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		request.getRequestDispatcher("/WEB-INF/views/admin/home.jsp").forward(request, response);
+		ViewRenderer.forward(request, response, ViewPaths.ADMIN_HOME);
 	}
 }

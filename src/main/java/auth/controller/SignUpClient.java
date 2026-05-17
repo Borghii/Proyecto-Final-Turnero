@@ -23,7 +23,7 @@ public class SignUpClient extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		request.getRequestDispatcher("/registro-cliente.jsp").forward(request, response);
+		request.getRequestDispatcher("/WEB-INF/views/registro-cliente.jsp").forward(request, response);
 	}
 
 	@Override
@@ -51,6 +51,6 @@ public class SignUpClient extends HttpServlet {
 	private void forwardSignUpWithError(HttpServletRequest request, HttpServletResponse response, String message)
 			throws ServletException, IOException {
 		request.setAttribute("error", message);
-		request.getRequestDispatcher("/registro-cliente.jsp").forward(request, response);
+		request.getRequestDispatcher("/WEB-INF/views/registro-cliente.jsp").forward(request, response);
 	}
 }

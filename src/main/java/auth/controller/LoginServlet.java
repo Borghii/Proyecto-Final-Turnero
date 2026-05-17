@@ -42,7 +42,7 @@ public class LoginServlet extends HttpServlet {
 			return;
 		}
 
-		request.getRequestDispatcher("/login.jsp").forward(request, response);
+		request.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(request, response);
 	}
 
 	@Override
@@ -76,11 +76,11 @@ public class LoginServlet extends HttpServlet {
 
 	private String getHomeUrl(HttpServletRequest request, RolEnum role) {
 		if (role == RolEnum.ADMIN) {
-			return request.getContextPath() + "/admin/home.jsp";
+			return request.getContextPath() + "/admin/home";
 		}
 
 		if (role == RolEnum.CLIENTE) {
-			return request.getContextPath() + "/cliente/home.jsp";
+			return request.getContextPath() + "/cliente/home";
 		}
 
 		return request.getContextPath() + "/login";
@@ -89,6 +89,6 @@ public class LoginServlet extends HttpServlet {
 	private void forwardLoginWithError(HttpServletRequest request, HttpServletResponse response, String message)
 			throws ServletException, IOException {
 		request.setAttribute("error", message);
-		request.getRequestDispatcher("/login.jsp").forward(request, response);
+		request.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(request, response);
 	}
 }

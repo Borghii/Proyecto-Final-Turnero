@@ -10,5 +10,5 @@ public interface UsuarioRepository {
 
 	boolean existsByMail(String mail) throws SQLException;
 
-	void save(Usuario usuario) throws SQLException;
+	Usuario save(Usuario usuario) throws SQLException;
 }

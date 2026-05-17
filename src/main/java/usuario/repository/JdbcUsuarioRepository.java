@@ -1,9 +1,6 @@
 package usuario.repository;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.Optional;
 
 import shared.db.ConexionDB;
@@ -69,9 +66,11 @@ public class JdbcUsuarioRepository implements UsuarioRepository {
 	}
 
 	@Override
-	public void save(Usuario usuario) throws SQLException {
+	public Usuario save(Usuario usuario) throws SQLException {
 		try (Connection connection = conexionDB.getConnection();
-		     PreparedStatement statement = connection.prepareStatement(INSERT_CLIENT)) {
+		     PreparedStatement statement = connection.prepareStatement(
+					 INSERT_CLIENT,
+					 Statement.RETURN_GENERATED_KEYS)) {
 
 			statement.setString(1, usuario.getMail());
 			statement.setString(2, usuario.getPass());
@@ -80,6 +79,19 @@ public class JdbcUsuarioRepository implements UsuarioRepository {
 
 
 			statement.executeUpdate();
+
+			try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+				if (generatedKeys.next()) {
+					return new Usuario(
+							generatedKeys.getInt(1),
+							usuario.getMail(),
+							usuario.getPass(),
+							usuario.getNombre(),
+							usuario.getRole());
+				}
+
+				throw new SQLException("No se pudo obtener el id generado del usuario");
+			}
 		}
     }
 

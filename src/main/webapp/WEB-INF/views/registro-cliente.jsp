@@ -9,7 +9,6 @@
 	<center>
 		<h1>Crear cuenta de Cliente</h1>
 
-		<%-- Bloque para mostrar errores por si el Servlet rechaza el registro (ej. mail repetido) --%>
 		<%
 			String error = (String) request.getAttribute("error");
 			if (error != null) {

@@ -1,0 +1,17 @@
+<table>
+	<tr>
+		<td><a href="<%= request.getContextPath() %>/admin/home">Home</a></td>
+	</tr>
+	<tr>
+		<td><a href="#">Mi negocio</a></td>
+	</tr>
+	<tr>
+		<td><a href="#">Mis servicios</a></td>
+	</tr>
+	<tr>
+		<td><a href="#">Turnos</a></td>
+	</tr>
+	<tr>
+		<td><a href="<%= request.getContextPath() %>/logout">Cerrar sesion</a></td>
+	</tr>
+</table>

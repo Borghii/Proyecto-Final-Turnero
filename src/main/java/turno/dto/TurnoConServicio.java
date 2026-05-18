@@ -3,6 +3,8 @@ package turno.dto;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+import shared.enums.EstadoTurnoEnum;
+
 public class TurnoConServicio {
 	private int idTurno;
 	private int idServicio;
@@ -13,10 +15,10 @@ public class TurnoConServicio {
 	private LocalDate fecha;
 	private LocalTime horaInicio;
 	private LocalTime horaFin;
-	private String estado;
+	private EstadoTurnoEnum estado;
 
 	public TurnoConServicio(int idTurno, int idServicio, String nombreServicio, int idUsuario, String mailCliente,
-			String nombreCliente, LocalDate fecha, LocalTime horaInicio, LocalTime horaFin, String estado) {
+			String nombreCliente, LocalDate fecha, LocalTime horaInicio, LocalTime horaFin, EstadoTurnoEnum estado) {
 		this.idTurno = idTurno;
 		this.idServicio = idServicio;
 		this.nombreServicio = nombreServicio;
@@ -65,7 +67,7 @@ public class TurnoConServicio {
 		return horaFin;
 	}
 
-	public String getEstado() {
+	public EstadoTurnoEnum getEstado() {
 		return estado;
 	}
 }

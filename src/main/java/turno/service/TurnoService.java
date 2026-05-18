@@ -7,4 +7,6 @@ import turno.dto.TurnoConServicio;
 
 public interface TurnoService {
 	List<TurnoConServicio> findUpcomingByBusinessOwner(int idUsuario) throws SQLException;
+
+	void cancelarTurno(int idTurno, int idUsuario) throws SQLException;
 }

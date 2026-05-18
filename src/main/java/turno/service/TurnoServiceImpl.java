@@ -5,25 +5,42 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
-import servicio.repository.ServicioRepository;
+import shared.enums.EstadoTurnoEnum;
+import shared.exception.AuthorizationException;
+import shared.exception.BusinessRuleException;
+import shared.exception.ResourceNotFoundException;
 import turno.dto.TurnoConServicio;
+import turno.dto.TurnoParaCancelacion;
 import turno.repository.TurnoRepository;
-import usuario.repository.UsuarioRepository;
 
 public class TurnoServiceImpl implements TurnoService {
 	private final TurnoRepository turnoRepository;
-	private final ServicioRepository servicioRepository;
-	private final UsuarioRepository usuarioRepository;
 
-	public TurnoServiceImpl(TurnoRepository turnoRepository, ServicioRepository servicioRepository,
-			UsuarioRepository usuarioRepository) {
+	public TurnoServiceImpl(TurnoRepository turnoRepository) {
 		this.turnoRepository = turnoRepository;
-		this.servicioRepository = servicioRepository;
-		this.usuarioRepository = usuarioRepository;
 	}
 
 	@Override
 	public List<TurnoConServicio> findUpcomingByBusinessOwner(int idUsuario) throws SQLException {
 		return turnoRepository.findByBusinessOwnerFromDateTime(idUsuario, LocalDate.now(), LocalTime.now());
+	}
+
+	@Override
+	public void cancelarTurno(int idTurno, int idUsuario) throws SQLException {
+		TurnoParaCancelacion turno = turnoRepository.findParaCancelacionById(idTurno)
+				.orElseThrow(() -> new ResourceNotFoundException("El turno no existe"));
+
+		if (turno.getIdUsuarioDuenioNegocio() != idUsuario) {
+			throw new AuthorizationException("El turno no pertenece al usuario actual");
+		}
+
+		if (turno.getEstado() == EstadoTurnoEnum.CANCELADO) {
+			throw new BusinessRuleException("El turno ya esta cancelado");
+		}
+
+		boolean cancelado = turnoRepository.cancelarPorDuenioDeNegocio(idTurno, idUsuario);
+		if (!cancelado) {
+			throw new BusinessRuleException("No se pudo cancelar el turno porque su estado cambio antes de guardar la cancelacion");
+		}
 	}
 }

@@ -25,6 +25,10 @@ public final class UserSession {
 		return session != null && session.getAttribute(USER_ID) != null;
 	}
 
+	public static int getUserId(HttpSession session) {
+		return (Integer) session.getAttribute(USER_ID);
+	}
+
 	public static RolEnum getRole(HttpSession session) {
 		if (session == null) {
 			return null;

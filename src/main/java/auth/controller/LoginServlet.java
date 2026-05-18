@@ -70,7 +70,6 @@ public class LoginServlet extends HttpServlet {
 			ViewRenderer.forwardWithError(request, response, HttpServletResponse.SC_UNAUTHORIZED,
 					ViewPaths.LOGIN, e.getMessage());
 		} catch (SQLException e) {
-			getServletContext().log("Error de base de datos durante el login", e);
 			ViewRenderer.forwardWithError(request, response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
 					ViewPaths.LOGIN, "No se pudo completar el login por un error de base de datos");
 		}

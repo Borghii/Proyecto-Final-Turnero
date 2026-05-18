@@ -18,36 +18,42 @@
     </style>
 </head>
 <body>
-    <center>
-        <h1>Bienvenido a tu panel, <%= session.getAttribute("nombreUsuario") %></h1>
-        <hr style="width: 50%;">
-
-        <h2>Peluquerías Disponibles</h2>
-
-        <%
-            // Recuperamos la lista que nos mandó el Servlet
-            List<Negocio> negocios = (List<Negocio>) request.getAttribute("negocios");
+    <table width="100%">
+        <tr>
+            <td width="180" valign="top">
+                <%@ include file="/WEB-INF/views/cliente/partials/sidebar.jspf" %>
+            </td>
             
-            if (negocios != null && !negocios.isEmpty()) {
-                // Recorremos la lista
-                for (Negocio n : negocios) {
-        %>
-                    <div class="tarjeta">
-                        <h3><%= n.getNombre() %></h3>
-                        <p><b>Ciudad:</b> <%= n.getCiudad() %></p>
-                        
-                        <a href="<%= request.getContextPath() %>/turnos?idNegocio=<%= n.getIdNegocio() %>">
-                            <button type="button">Ver Turnos</button>
-                        </a>
-                    </div>
-        <%
-                }
-            } else {
-        %>
-                <p>No hay peluquerías registradas por el momento.</p>
-        <%
-            }
-        %>
-    </center>
+            <td valign="top">
+                <h1>Bienvenido a tu panel, <%= session.getAttribute("nombreUsuario") %></h1>
+                <hr style="width: 50%; text-align: left; margin-left: 0;">
+
+                <h2>Peluquerías Disponibles</h2>
+
+                <%
+                    // Recuperamos la lista que nos mandó el Servlet
+                    List<Negocio> negocios = (List<Negocio>) request.getAttribute("negocios");
+                    if (negocios != null && !negocios.isEmpty()) {
+                        for (Negocio n : negocios) {
+                %>
+                            <div class="tarjeta">
+                                <h3><%= n.getNombre() %></h3>
+                                <p><b>Ciudad:</b> <%= n.getCiudad() %></p>
+                                
+                                <a href="<%= request.getContextPath() %>/turnos?idNegocio=<%= n.getIdNegocio() %>">
+                                    <button type="button">Ver Turnos</button>
+                                </a>
+                            </div>
+                <%
+                        }
+                    } else {
+                %>
+                        <p>No hay peluquerías registradas por el momento.</p>
+                <%
+                    }
+                %>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>

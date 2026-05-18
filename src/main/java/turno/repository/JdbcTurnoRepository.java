@@ -14,6 +14,7 @@ import java.util.Optional;
 
 import shared.db.ConexionDB;
 import shared.enums.EstadoTurnoEnum;
+import turno.dto.TurnoClienteDTO;
 import turno.dto.TurnoConServicio;
 import turno.dto.TurnoParaCancelacion;
 
@@ -132,4 +133,41 @@ public class JdbcTurnoRepository implements TurnoRepository {
 				resultSet.getInt("id_usuario_duenio_negocio"),
 				EstadoTurnoEnum.valueOf(resultSet.getString("estado")));
 	}
+	
+	private static final String SELECT_BY_CLIENTE = """
+            SELECT t.id_turno, t.fecha, t.hora_inicio, t.hora_fin, t.estado, 
+                   s.nombre AS nombre_servicio, s.precio, n.nombre AS nombre_negocio
+            FROM turnos t
+            JOIN servicios s ON t.id_servicio = s.id_servicio
+            JOIN negocios n ON s.id_negocio = n.id_negocio
+            WHERE t.id_usuario = ?
+            ORDER BY t.fecha DESC, t.hora_inicio DESC
+            """;
+
+    @Override
+    public List<TurnoClienteDTO> findByClienteId(int idUsuario) throws SQLException {
+        List<TurnoClienteDTO> turnos = new ArrayList<>();
+        
+        try (Connection connection = conexionDB.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SELECT_BY_CLIENTE)) {
+            
+            statement.setInt(1, idUsuario);
+            
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    turnos.add(new TurnoClienteDTO(
+                        resultSet.getInt("id_turno"),
+                        resultSet.getDate("fecha").toLocalDate(),
+                        resultSet.getTime("hora_inicio").toLocalTime(),
+                        resultSet.getTime("hora_fin").toLocalTime(),
+                        resultSet.getString("nombre_negocio"),
+                        resultSet.getString("nombre_servicio"),
+                        resultSet.getBigDecimal("precio").doubleValue(),
+                        EstadoTurnoEnum.valueOf(resultSet.getString("estado"))
+                    ));
+                }
+            }
+        }
+        return turnos;
+    }
 }

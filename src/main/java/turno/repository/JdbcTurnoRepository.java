@@ -10,9 +10,12 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import shared.db.ConexionDB;
+import shared.enums.EstadoTurnoEnum;
 import turno.dto.TurnoConServicio;
+import turno.dto.TurnoParaCancelacion;
 
 public class JdbcTurnoRepository implements TurnoRepository {
 	private final ConexionDB conexionDB;
@@ -31,6 +34,24 @@ public class JdbcTurnoRepository implements TurnoRepository {
 				OR (t.fecha = ? AND t.hora_inicio >= ?)
 			)
 			ORDER BY t.fecha, t.hora_inicio
+			""";
+
+	private static final String SELECT_FOR_CANCEL = """
+			SELECT t.id_turno, n.id_usuario AS id_usuario_duenio_negocio, t.estado
+			FROM turnos t
+			JOIN servicios s ON s.id_servicio = t.id_servicio
+			JOIN negocios n ON n.id_negocio = s.id_negocio
+			WHERE t.id_turno = ?
+			""";
+
+	private static final String UPDATE_CANCEL_BY_BUSINESS_OWNER = """
+			UPDATE turnos t
+			JOIN servicios s ON s.id_servicio = t.id_servicio
+			JOIN negocios n ON n.id_negocio = s.id_negocio
+			SET t.estado = ?
+			WHERE t.id_turno = ?
+			AND n.id_usuario = ?
+			AND t.estado <> ?
 			""";
 
 	public JdbcTurnoRepository(ConexionDB conexionDB) {
@@ -60,6 +81,37 @@ public class JdbcTurnoRepository implements TurnoRepository {
 		}
 	}
 
+	@Override
+	public Optional<TurnoParaCancelacion> findParaCancelacionById(int idTurno) throws SQLException {
+		try (Connection connection = conexionDB.getConnection();
+				PreparedStatement statement = connection.prepareStatement(SELECT_FOR_CANCEL)) {
+
+			statement.setInt(1, idTurno);
+
+			try (ResultSet resultSet = statement.executeQuery()) {
+				if (!resultSet.next()) {
+					return Optional.empty();
+				}
+
+				return Optional.of(mapTurnoParaCancelacion(resultSet));
+			}
+		}
+	}
+
+	@Override
+	public boolean cancelarPorDuenioDeNegocio(int idTurno, int idUsuario) throws SQLException {
+		try (Connection connection = conexionDB.getConnection();
+				PreparedStatement statement = connection.prepareStatement(UPDATE_CANCEL_BY_BUSINESS_OWNER)) {
+
+			statement.setString(1, EstadoTurnoEnum.CANCELADO.name());
+			statement.setInt(2, idTurno);
+			statement.setInt(3, idUsuario);
+			statement.setString(4, EstadoTurnoEnum.CANCELADO.name());
+
+			return statement.executeUpdate() > 0;
+		}
+	}
+
 	private TurnoConServicio mapTurno(ResultSet resultSet) throws SQLException {
 		return new TurnoConServicio(
 				resultSet.getInt("id_turno"),
@@ -71,6 +123,13 @@ public class JdbcTurnoRepository implements TurnoRepository {
 				resultSet.getDate("fecha").toLocalDate(),
 				resultSet.getTime("hora_inicio").toLocalTime(),
 				resultSet.getTime("hora_fin").toLocalTime(),
-				resultSet.getString("estado"));
+				EstadoTurnoEnum.valueOf(resultSet.getString("estado")));
+	}
+
+	private TurnoParaCancelacion mapTurnoParaCancelacion(ResultSet resultSet) throws SQLException {
+		return new TurnoParaCancelacion(
+				resultSet.getInt("id_turno"),
+				resultSet.getInt("id_usuario_duenio_negocio"),
+				EstadoTurnoEnum.valueOf(resultSet.getString("estado")));
 	}
 }

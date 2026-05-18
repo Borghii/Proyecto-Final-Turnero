@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>
+<%@ page import="shared.enums.EstadoTurnoEnum" %>
 <%@ page import="turno.dto.TurnoConServicio" %>
 <!doctype html>
 <html lang="es">
@@ -45,6 +46,7 @@
 							<th>Email cliente</th>
 							<th>Nombre cliente</th>
 							<th>Estado</th>
+							<th>Acciones</th>
 						</tr>
 						<%
 							for (TurnoConServicio turno : turnos) {
@@ -57,6 +59,22 @@
 								<td><%= turno.getMailCliente() %></td>
 								<td><%= turno.getNombreCliente() %></td>
 								<td><%= turno.getEstado() %></td>
+								<td>
+									<%
+										if (turno.getEstado() == EstadoTurnoEnum.CANCELADO) {
+									%>
+										Cancelado
+									<%
+										} else {
+									%>
+										<form method="post" action="<%= request.getContextPath() %>/admin/turnos/cancelar">
+											<input type="hidden" name="idTurno" value="<%= turno.getIdTurno() %>">
+											<button type="submit">Cancelar</button>
+										</form>
+									<%
+										}
+									%>
+								</td>
 							</tr>
 						<%
 							}

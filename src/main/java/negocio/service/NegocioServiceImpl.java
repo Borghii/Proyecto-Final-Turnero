@@ -17,9 +17,9 @@ public class NegocioServiceImpl implements NegocioService {
 	public void createBusiness(Negocio negocio) throws SQLException {
 		negocioRepository.save(negocio);
 	}
-
 	@Override
-	public List<Negocio> obtenerTodosLosNegocios() throws SQLException {
-		return negocioRepository.findAll();
-	}
+    public List<Negocio> obtenerTodosLosNegocios() throws SQLException {
+        // Le pedimos al repositorio la lista que armaste en el paso anterior
+        return negocioRepository.findAll(); 
+    }
 }

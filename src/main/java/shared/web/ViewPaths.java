@@ -6,6 +6,7 @@ public final class ViewPaths {
 	public static final String SIGNUP_BUSINESS = "/WEB-INF/views/registro-negocio.jsp";
 	public static final String ADMIN_HOME = "/WEB-INF/views/admin/home.jsp";
 	public static final String CLIENTE_HOME = "/WEB-INF/views/cliente/home.jsp";
+	public static final String CLIENTE_MIS_TURNOS = "/WEB-INF/views/cliente/mis-turnos.jsp";
 
 	private ViewPaths() {
 	}

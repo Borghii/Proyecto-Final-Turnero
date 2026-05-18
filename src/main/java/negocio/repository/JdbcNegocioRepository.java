@@ -18,6 +18,13 @@ public class JdbcNegocioRepository implements NegocioRepository {
 			VALUES (?, ?, ?)
 			""";
 
+
+	private static final String FIND_ALL_NEGOCIOS = """
+			SELECT id_negocio, ciudad, nombre, id_usuario 
+			FROM negocios
+			""";
+
+
 	public JdbcNegocioRepository(ConexionDB conexionDB) {
 		this.conexionDB = conexionDB;
 	}
@@ -38,21 +45,18 @@ public class JdbcNegocioRepository implements NegocioRepository {
 	@Override
 	public List<Negocio> findAll() throws SQLException {
 		List<Negocio> negocios = new ArrayList<>();
-		String sql = "SELECT id_negocio, ciudad, nombre, id_usuario FROM negocios";
 
 		try (Connection connection = conexionDB.getConnection();
-			 PreparedStatement statement = connection.prepareStatement(sql);
+			 PreparedStatement statement = connection.prepareStatement(FIND_ALL_NEGOCIOS);
 			 ResultSet resultSet = statement.executeQuery()) {
 
 			while (resultSet.next()) {
-				// Acá llamamos al método de abajo para que arme el objeto
 				negocios.add(mapNegocio(resultSet));
 			}
 		}
 		return negocios;
 	}
 
-	// Este es el método que te faltaba. Toma los datos de MySQL y usa tu constructor
 	private Negocio mapNegocio(ResultSet resultSet) throws SQLException {
 		return new Negocio(
 				resultSet.getInt("id_negocio"),

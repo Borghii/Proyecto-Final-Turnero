@@ -9,6 +9,7 @@ import shared.enums.EstadoTurnoEnum;
 import shared.exception.AuthorizationException;
 import shared.exception.BusinessRuleException;
 import shared.exception.ResourceNotFoundException;
+import turno.dto.TurnoClienteDTO;
 import turno.dto.TurnoConServicio;
 import turno.dto.TurnoParaCancelacion;
 import turno.repository.TurnoRepository;
@@ -43,4 +44,9 @@ public class TurnoServiceImpl implements TurnoService {
 			throw new BusinessRuleException("No se pudo cancelar el turno porque su estado cambio antes de guardar la cancelacion");
 		}
 	}
+	
+	@Override
+    public List<TurnoClienteDTO> obtenerTurnosPorCliente(int idUsuario) throws SQLException {
+        return turnoRepository.findByClienteId(idUsuario);
+    }
 }

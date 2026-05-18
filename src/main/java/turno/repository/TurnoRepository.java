@@ -6,6 +6,7 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
+import turno.dto.TurnoClienteDTO;
 import turno.dto.TurnoConServicio;
 import turno.dto.TurnoParaCancelacion;
 
@@ -16,4 +17,6 @@ public interface TurnoRepository {
 	Optional<TurnoParaCancelacion> findParaCancelacionById(int idTurno) throws SQLException;
 
 	boolean cancelarPorDuenioDeNegocio(int idTurno, int idUsuario) throws SQLException;
+	
+	List<TurnoClienteDTO> findByClienteId(int idUsuario) throws SQLException;
 }

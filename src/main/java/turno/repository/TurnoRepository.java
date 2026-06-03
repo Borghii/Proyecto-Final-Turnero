@@ -1,6 +1,5 @@
 package turno.repository;
 
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -11,12 +10,11 @@ import turno.dto.TurnoConServicio;
 import turno.dto.TurnoParaCancelacion;
 
 public interface TurnoRepository {
-	List<TurnoConServicio> findByBusinessOwnerFromDateTime(int idUsuario, LocalDate fromDate, LocalTime fromTime)
-			throws SQLException;
+	List<TurnoConServicio> findByBusinessOwnerFromDateTime(int idUsuario, LocalDate fromDate, LocalTime fromTime);
 
-	Optional<TurnoParaCancelacion> findParaCancelacionById(int idTurno) throws SQLException;
+	Optional<TurnoParaCancelacion> findParaCancelacionById(int idTurno);
 
-	boolean cancelarPorDuenioDeNegocio(int idTurno, int idUsuario) throws SQLException;
+	boolean cancelarPorDuenioDeNegocio(int idTurno, int idUsuario);
 	
-	List<TurnoClienteDTO> findByClienteId(int idUsuario) throws SQLException;
+	List<TurnoClienteDTO> findByClienteId(int idUsuario);
 }

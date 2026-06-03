@@ -1,7 +1,6 @@
 package usuario.controller;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -13,6 +12,7 @@ import javax.servlet.http.HttpSession;
 
 import auth.session.UserSession;
 import shared.context.AppContext;
+import shared.exception.InternalSystemException;
 import shared.web.ViewPaths;
 import shared.web.ViewRenderer;
 import turno.dto.TurnoConServicio;
@@ -33,9 +33,9 @@ public class AdminHomeServlet extends HttpServlet {
 		try {
 			List<TurnoConServicio> turnos = turnoService.findUpcomingByBusinessOwner(idUsuario);
 			request.setAttribute("turnos", turnos);
-		} catch (SQLException e) {
+		} catch (InternalSystemException e) {
 			ViewRenderer.forwardWithError(request, response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-					ViewPaths.ADMIN_HOME, "No se pudieron cargar los proximos turnos");
+					ViewPaths.ADMIN_HOME, e.getMessage());
 			return;
 		}
 

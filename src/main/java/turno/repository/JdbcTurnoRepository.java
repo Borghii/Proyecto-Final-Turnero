@@ -14,6 +14,7 @@ import java.util.Optional;
 
 import shared.db.ConexionDB;
 import shared.enums.EstadoTurnoEnum;
+import shared.exception.InternalSystemException;
 import turno.dto.TurnoClienteDTO;
 import turno.dto.TurnoConServicio;
 import turno.dto.TurnoParaCancelacion;
@@ -61,7 +62,7 @@ public class JdbcTurnoRepository implements TurnoRepository {
 
 	@Override
 	public List<TurnoConServicio> findByBusinessOwnerFromDateTime(int idUsuario, LocalDate fromDate,
-			LocalTime fromTime) throws SQLException {
+			LocalTime fromTime) {
 		try (Connection connection = conexionDB.getConnection();
 				PreparedStatement statement = connection.prepareStatement(SELECT_BY_BUSINESS_OWNER_FROM_DATE_TIME)) {
 
@@ -79,11 +80,13 @@ public class JdbcTurnoRepository implements TurnoRepository {
 
 				return turnos;
 			}
+		} catch (SQLException e) {
+			throw new InternalSystemException();
 		}
 	}
 
 	@Override
-	public Optional<TurnoParaCancelacion> findParaCancelacionById(int idTurno) throws SQLException {
+	public Optional<TurnoParaCancelacion> findParaCancelacionById(int idTurno) {
 		try (Connection connection = conexionDB.getConnection();
 				PreparedStatement statement = connection.prepareStatement(SELECT_FOR_CANCEL)) {
 
@@ -96,11 +99,13 @@ public class JdbcTurnoRepository implements TurnoRepository {
 
 				return Optional.of(mapTurnoParaCancelacion(resultSet));
 			}
+		} catch (SQLException e) {
+			throw new InternalSystemException();
 		}
 	}
 
 	@Override
-	public boolean cancelarPorDuenioDeNegocio(int idTurno, int idUsuario) throws SQLException {
+	public boolean cancelarPorDuenioDeNegocio(int idTurno, int idUsuario) {
 		try (Connection connection = conexionDB.getConnection();
 				PreparedStatement statement = connection.prepareStatement(UPDATE_CANCEL_BY_BUSINESS_OWNER)) {
 
@@ -110,28 +115,38 @@ public class JdbcTurnoRepository implements TurnoRepository {
 			statement.setString(4, EstadoTurnoEnum.CANCELADO.name());
 
 			return statement.executeUpdate() > 0;
+		} catch (SQLException e) {
+			throw new InternalSystemException();
 		}
 	}
 
-	private TurnoConServicio mapTurno(ResultSet resultSet) throws SQLException {
-		return new TurnoConServicio(
-				resultSet.getInt("id_turno"),
-				resultSet.getInt("id_servicio"),
-				resultSet.getString("nombre_servicio"),
-				resultSet.getInt("id_usuario"),
-				resultSet.getString("mail_cliente"),
-				resultSet.getString("nombre_cliente"),
-				resultSet.getDate("fecha").toLocalDate(),
-				resultSet.getTime("hora_inicio").toLocalTime(),
-				resultSet.getTime("hora_fin").toLocalTime(),
-				EstadoTurnoEnum.valueOf(resultSet.getString("estado")));
+	private TurnoConServicio mapTurno(ResultSet resultSet) {
+		try {
+			return new TurnoConServicio(
+					resultSet.getInt("id_turno"),
+					resultSet.getInt("id_servicio"),
+					resultSet.getString("nombre_servicio"),
+					resultSet.getInt("id_usuario"),
+					resultSet.getString("mail_cliente"),
+					resultSet.getString("nombre_cliente"),
+					resultSet.getDate("fecha").toLocalDate(),
+					resultSet.getTime("hora_inicio").toLocalTime(),
+					resultSet.getTime("hora_fin").toLocalTime(),
+					EstadoTurnoEnum.valueOf(resultSet.getString("estado")));
+		} catch (SQLException e) {
+			throw new InternalSystemException();
+		}
 	}
 
-	private TurnoParaCancelacion mapTurnoParaCancelacion(ResultSet resultSet) throws SQLException {
-		return new TurnoParaCancelacion(
-				resultSet.getInt("id_turno"),
-				resultSet.getInt("id_usuario_duenio_negocio"),
-				EstadoTurnoEnum.valueOf(resultSet.getString("estado")));
+	private TurnoParaCancelacion mapTurnoParaCancelacion(ResultSet resultSet) {
+		try {
+			return new TurnoParaCancelacion(
+					resultSet.getInt("id_turno"),
+					resultSet.getInt("id_usuario_duenio_negocio"),
+					EstadoTurnoEnum.valueOf(resultSet.getString("estado")));
+		} catch (SQLException e) {
+			throw new InternalSystemException();
+		}
 	}
 	
 	private static final String SELECT_BY_CLIENTE = """
@@ -145,7 +160,7 @@ public class JdbcTurnoRepository implements TurnoRepository {
             """;
 
     @Override
-    public List<TurnoClienteDTO> findByClienteId(int idUsuario) throws SQLException {
+    public List<TurnoClienteDTO> findByClienteId(int idUsuario) {
         List<TurnoClienteDTO> turnos = new ArrayList<>();
         
         try (Connection connection = conexionDB.getConnection();
@@ -167,6 +182,8 @@ public class JdbcTurnoRepository implements TurnoRepository {
                     ));
                 }
             }
+        } catch (SQLException e) {
+            throw new InternalSystemException();
         }
         return turnos;
     }

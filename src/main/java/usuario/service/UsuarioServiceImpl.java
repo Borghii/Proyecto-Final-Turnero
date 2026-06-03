@@ -1,7 +1,5 @@
 package usuario.service;
 
-import java.sql.SQLException;
-
 import shared.enums.RolEnum;
 import shared.exception.ResourceNotFoundException;
 import shared.exception.ValidationException;
@@ -17,14 +15,14 @@ public class UsuarioServiceImpl implements UsuarioService {
 	}
 
 	@Override
-	public Usuario findByMail(String mail) throws SQLException {
+	public Usuario findByMail(String mail) {
 		return usuarioRepository.findByMail(mail)
 				.orElseThrow(() -> new ResourceNotFoundException(
 						"No existe un usuario registrado con el mail " + mail));
 	}
 
 	@Override
-	public void saveClient(Usuario usuario) throws SQLException {
+	public void saveClient(Usuario usuario) {
 
 		if (usuarioRepository.existsByMail(usuario.getMail())) {
 			throw new ValidationException("Ya existe un usuario registrado con el mail " + usuario.getMail());
@@ -37,7 +35,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 	}
 
 	@Override
-	public Usuario saveAdmin(Usuario usuario) throws SQLException {
+	public Usuario saveAdmin(Usuario usuario) {
 
 		if (usuarioRepository.existsByMail(usuario.getMail())) {
 			throw new ValidationException("Ya existe un usuario registrado con el mail " + usuario.getMail());

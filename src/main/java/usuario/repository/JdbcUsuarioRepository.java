@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import shared.db.ConexionDB;
 import shared.enums.RolEnum;
+import shared.exception.InternalSystemException;
 import usuario.entity.Usuario;
 
 public class JdbcUsuarioRepository implements UsuarioRepository {
@@ -36,7 +37,7 @@ public class JdbcUsuarioRepository implements UsuarioRepository {
 	}
 
 	@Override
-	public Optional<Usuario> findByMail(String mail) throws SQLException {
+	public Optional<Usuario> findByMail(String mail) {
 		try (Connection connection = conexionDB.getConnection();
 				PreparedStatement statement = connection.prepareStatement(SELECT_BY_MAIL)) {
 
@@ -49,11 +50,13 @@ public class JdbcUsuarioRepository implements UsuarioRepository {
 
 				return Optional.empty();
 			}
+		} catch (SQLException e) {
+			throw new InternalSystemException();
 		}
 	}
 
 	@Override
-	public boolean existsByMail(String mail) throws SQLException {
+	public boolean existsByMail(String mail) {
 		try (Connection connection = conexionDB.getConnection();
 				PreparedStatement statement = connection.prepareStatement(EXISTS_BY_MAIL)) {
 
@@ -62,11 +65,13 @@ public class JdbcUsuarioRepository implements UsuarioRepository {
 			try (ResultSet resultSet = statement.executeQuery()) {
 				return resultSet.next();
 			}
+		} catch (SQLException e) {
+			throw new InternalSystemException();
 		}
 	}
 
 	@Override
-	public Usuario save(Usuario usuario) throws SQLException {
+	public Usuario save(Usuario usuario) {
 		try (Connection connection = conexionDB.getConnection();
 		     PreparedStatement statement = connection.prepareStatement(
 					 INSERT_CLIENT,
@@ -90,18 +95,24 @@ public class JdbcUsuarioRepository implements UsuarioRepository {
 							usuario.getRole());
 				}
 
-				throw new SQLException("No se pudo obtener el id generado del usuario");
+				throw new InternalSystemException();
 			}
+		} catch (SQLException e) {
+			throw new InternalSystemException();
 		}
     }
 
 
-	private Usuario mapUsuario(ResultSet resultSet) throws SQLException {
-		return new Usuario(
-				resultSet.getInt("id_usuario"),
-				resultSet.getString("mail"),
-				resultSet.getString("pass"),
-				resultSet.getString("nombre"),
-				RolEnum.valueOf(resultSet.getString("role_name")));
+	private Usuario mapUsuario(ResultSet resultSet) {
+		try {
+			return new Usuario(
+					resultSet.getInt("id_usuario"),
+					resultSet.getString("mail"),
+					resultSet.getString("pass"),
+					resultSet.getString("nombre"),
+					RolEnum.valueOf(resultSet.getString("role_name")));
+		} catch (SQLException e) {
+			throw new InternalSystemException();
+		}
 	}
 }

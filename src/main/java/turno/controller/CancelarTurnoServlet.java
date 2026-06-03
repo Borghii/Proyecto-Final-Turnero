@@ -1,7 +1,6 @@
 package turno.controller;
 
 import java.io.IOException;
-import java.sql.SQLException;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -14,6 +13,7 @@ import auth.session.UserSession;
 import shared.context.AppContext;
 import shared.exception.AuthorizationException;
 import shared.exception.BusinessRuleException;
+import shared.exception.InternalSystemException;
 import shared.exception.ResourceNotFoundException;
 import shared.exception.ValidationException;
 import turno.dto.CancelarTurnoRequest;
@@ -44,8 +44,8 @@ public class CancelarTurnoServlet extends HttpServlet {
 			response.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
 		} catch (BusinessRuleException e) {
 			response.sendError(HttpServletResponse.SC_CONFLICT, e.getMessage());
-		} catch (SQLException e) {
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "No se pudo cancelar el turno");
+		} catch (InternalSystemException e) {
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 		}
 	}
 }

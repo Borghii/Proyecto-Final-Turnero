@@ -2,6 +2,7 @@ package negocio.repository;
 
 import negocio.entity.Negocio;
 import shared.db.ConexionDB;
+import shared.exception.InternalSystemException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -30,7 +31,7 @@ public class JdbcNegocioRepository implements NegocioRepository {
 	}
 
 	@Override
-	public void save(Negocio negocio) throws SQLException {
+	public void save(Negocio negocio) {
 
 		try(Connection connection = conexionDB.getConnection();
 		    PreparedStatement statement = connection.prepareStatement(INSERT_NEGOCIO))
@@ -39,11 +40,13 @@ public class JdbcNegocioRepository implements NegocioRepository {
 			statement.setString(2, negocio.getNombre());
 			statement.setInt(3, negocio.getIdUsuario());
 			statement.executeUpdate();
+		} catch (SQLException e) {
+			throw new InternalSystemException();
 		}
 
 	}
 	@Override
-	public List<Negocio> findAll() throws SQLException {
+	public List<Negocio> findAll() {
 		List<Negocio> negocios = new ArrayList<>();
 
 		try (Connection connection = conexionDB.getConnection();
@@ -53,16 +56,22 @@ public class JdbcNegocioRepository implements NegocioRepository {
 			while (resultSet.next()) {
 				negocios.add(mapNegocio(resultSet));
 			}
+		} catch (SQLException e) {
+			throw new InternalSystemException();
 		}
 		return negocios;
 	}
 
-	private Negocio mapNegocio(ResultSet resultSet) throws SQLException {
-		return new Negocio(
-				resultSet.getInt("id_negocio"),
-				resultSet.getString("ciudad"),
-				resultSet.getString("nombre"),
-				resultSet.getInt("id_usuario")
-		);
+	private Negocio mapNegocio(ResultSet resultSet) {
+		try {
+			return new Negocio(
+					resultSet.getInt("id_negocio"),
+					resultSet.getString("ciudad"),
+					resultSet.getString("nombre"),
+					resultSet.getInt("id_usuario")
+			);
+		} catch (SQLException e) {
+			throw new InternalSystemException();
+		}
 	}
 }

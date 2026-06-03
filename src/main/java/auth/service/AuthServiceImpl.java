@@ -1,7 +1,5 @@
 package auth.service;
 
-import java.sql.SQLException;
-
 import auth.dto.LoginRequest;
 import auth.dto.SignUpBussinesRequest;
 import auth.dto.SignUpClientRequest;
@@ -19,10 +17,10 @@ public class AuthServiceImpl implements AuthService {
 	public AuthServiceImpl(UsuarioService usuarioService, NegocioService negocioService) {
 		this.usuarioService = usuarioService;
         this.negocioService = negocioService;
-    }
+	}
 
 	@Override
-	public Usuario login(LoginRequest loginRequest) throws SQLException {
+	public Usuario login(LoginRequest loginRequest) {
 
 		Usuario usuario = usuarioService.findByMail(loginRequest.getMail());
 
@@ -34,7 +32,7 @@ public class AuthServiceImpl implements AuthService {
 	}
 
 	@Override
-	public void signUpClient(SignUpClientRequest signUpClientRequest) throws SQLException {
+	public void signUpClient(SignUpClientRequest signUpClientRequest) {
 
 
 		usuarioService.saveClient(new Usuario(
@@ -47,7 +45,7 @@ public class AuthServiceImpl implements AuthService {
 	}
 
 	@Override
-	public void signUpBusiness(SignUpBussinesRequest signUpBussinesRequest) throws SQLException {
+	public void signUpBusiness(SignUpBussinesRequest signUpBussinesRequest) {
 
 
 		//Nota: estas dos operaciones se deberin realizar dentro de una transaccion

@@ -1,7 +1,6 @@
 package usuario.controller;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -13,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import negocio.entity.Negocio;
 import negocio.service.NegocioService;
 import shared.context.AppContext;
+import shared.exception.InternalSystemException;
 import shared.web.ViewPaths;
 import shared.web.ViewRenderer;
 
@@ -32,9 +32,9 @@ public class ClienteHomeServlet extends HttpServlet {
 			
 			ViewRenderer.forward(request, response, ViewPaths.CLIENTE_HOME);
 			
-		} catch (SQLException e) {
+		} catch (InternalSystemException e) {
 			ViewRenderer.forwardWithError(request, response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-					ViewPaths.CLIENTE_HOME, "Error al cargar las peluquerias. Intenta de nuevo mas tarde.");
+					ViewPaths.CLIENTE_HOME, e.getMessage());
 		}
 	}
 }

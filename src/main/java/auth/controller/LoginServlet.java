@@ -1,7 +1,6 @@
 package auth.controller;
 
 import java.io.IOException;
-import java.sql.SQLException;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -16,6 +15,7 @@ import auth.service.AuthService;
 import shared.context.AppContext;
 import shared.enums.RolEnum;
 import shared.exception.AuthenticationException;
+import shared.exception.InternalSystemException;
 import shared.exception.ResourceNotFoundException;
 import shared.exception.ValidationException;
 import shared.web.ViewPaths;
@@ -69,9 +69,9 @@ public class LoginServlet extends HttpServlet {
 		} catch (AuthenticationException e) {
 			ViewRenderer.forwardWithError(request, response, HttpServletResponse.SC_UNAUTHORIZED,
 					ViewPaths.LOGIN, e.getMessage());
-		} catch (SQLException e) {
+		} catch (InternalSystemException e) {
 			ViewRenderer.forwardWithError(request, response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-					ViewPaths.LOGIN, "No se pudo completar el login por un error de base de datos");
+					ViewPaths.LOGIN, e.getMessage());
 		}
 	}
 

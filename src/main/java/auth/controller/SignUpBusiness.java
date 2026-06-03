@@ -1,7 +1,6 @@
 package auth.controller;
 
 import java.io.IOException;
-import java.sql.SQLException;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -13,6 +12,7 @@ import auth.dto.SignUpBussinesRequest;
 import auth.dto.SignUpClientRequest;
 import auth.service.AuthService;
 import shared.context.AppContext;
+import shared.exception.InternalSystemException;
 import shared.exception.ValidationException;
 import shared.web.ViewPaths;
 import shared.web.ViewRenderer;
@@ -52,9 +52,9 @@ public class SignUpBusiness extends HttpServlet {
 		} catch (ValidationException e) {
 			ViewRenderer.forwardWithError(request, response, HttpServletResponse.SC_BAD_REQUEST,
 					ViewPaths.SIGNUP_BUSINESS, e.getMessage());
-		} catch (SQLException e) {
+		} catch (InternalSystemException e) {
 			ViewRenderer.forwardWithError(request, response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-					ViewPaths.SIGNUP_BUSINESS, "No se pudo completar el registro por un error de base de datos");
+					ViewPaths.SIGNUP_BUSINESS, e.getMessage());
 		}
 
 

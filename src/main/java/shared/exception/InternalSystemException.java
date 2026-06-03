@@ -2,8 +2,10 @@ package shared.exception;
 
 public class InternalSystemException extends RuntimeException {
 	private static final long serialVersionUID = 1L;
+	private static final String DEFAULT_MESSAGE =
+			"Ocurrio un error interno del sistema. Intenta nuevamente mas tarde.";
 
-	public InternalSystemException(String message) {
-		super(message);
+	public InternalSystemException() {
+		super(DEFAULT_MESSAGE);
 	}
 }

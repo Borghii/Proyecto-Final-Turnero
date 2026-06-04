@@ -2,22 +2,33 @@ package turno.service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
+import servicio.entity.Servicio;
+import servicio.repository.ServicioRepository;
 import shared.enums.EstadoTurnoEnum;
 import shared.exception.AuthorizationException;
 import shared.exception.BusinessRuleException;
 import shared.exception.ResourceNotFoundException;
+import turno.dto.ConfirmacionTurnoDTO;
 import turno.dto.TurnoClienteDTO;
 import turno.dto.TurnoConServicio;
 import turno.dto.TurnoParaCancelacion;
+import turno.entity.Turno;
 import turno.repository.TurnoRepository;
 
 public class TurnoServiceImpl implements TurnoService {
-	private final TurnoRepository turnoRepository;
+	private static final LocalTime HORA_APERTURA_PLACEHOLDER = LocalTime.of(9, 0);
+	private static final LocalTime HORA_CIERRE_PLACEHOLDER = LocalTime.of(18, 0);
+	private static final int SALTO_MINUTOS = 30;
 
-	public TurnoServiceImpl(TurnoRepository turnoRepository) {
+	private final TurnoRepository turnoRepository;
+	private final ServicioRepository servicioRepository;
+
+	public TurnoServiceImpl(TurnoRepository turnoRepository, ServicioRepository servicioRepository) {
 		this.turnoRepository = turnoRepository;
+		this.servicioRepository = servicioRepository;
 	}
 
 	@Override
@@ -43,9 +54,121 @@ public class TurnoServiceImpl implements TurnoService {
 			throw new BusinessRuleException("No se pudo cancelar el turno. Intenta nuevamente.");
 		}
 	}
-	
+
 	@Override
-    public List<TurnoClienteDTO> obtenerTurnosPorCliente(int idUsuario) {
-        return turnoRepository.findByClienteId(idUsuario);
-    }
+	public List<LocalTime> obtenerHorariosDisponibles(int idNegocio, int idServicio, LocalDate fecha) {
+		validarFechaReservable(fecha);
+		Servicio servicio = obtenerServicioDelNegocio(idNegocio, idServicio);
+		return calcularHorariosDisponibles(idNegocio, servicio, fecha);
+	}
+
+	@Override
+	public ConfirmacionTurnoDTO obtenerConfirmacionTurno(int idNegocio, int idServicio, LocalDate fecha,
+			LocalTime horaInicio) {
+		validarFechaReservable(fecha);
+		validarHora(horaInicio);
+
+		Servicio servicio = obtenerServicioDelNegocio(idNegocio, idServicio);
+		validarHorarioDisponible(idNegocio, servicio, fecha, horaInicio);
+
+		return new ConfirmacionTurnoDTO(
+				idNegocio,
+				servicio.getIdServicio(),
+				servicio.getNombre(),
+				servicio.getPrecio(),
+				servicio.getDuracion(),
+				fecha,
+				horaInicio,
+				horaInicio.plusMinutes(servicio.getDuracion()));
+	}
+
+	@Override
+	public void reservarTurno(int idNegocio, int idServicio, int idUsuario, LocalDate fecha, LocalTime horaInicio) {
+		validarFechaReservable(fecha);
+		validarHora(horaInicio);
+
+		Servicio servicio = obtenerServicioDelNegocio(idNegocio, idServicio);
+		validarHorarioDisponible(idNegocio, servicio, fecha, horaInicio);
+
+		Turno turno = new Turno(
+				0,
+				servicio.getIdServicio(),
+				idUsuario,
+				fecha,
+				horaInicio,
+				horaInicio.plusMinutes(servicio.getDuracion()),
+				EstadoTurnoEnum.CONFIRMADO);
+
+		turnoRepository.crear(turno);
+	}
+
+	@Override
+	public List<TurnoClienteDTO> obtenerTurnosPorCliente(int idUsuario) {
+		return turnoRepository.findByClienteId(idUsuario);
+	}
+
+	private Servicio obtenerServicioDelNegocio(int idNegocio, int idServicio) {
+		Servicio servicio = servicioRepository.findById(idServicio)
+				.orElseThrow(() -> new ResourceNotFoundException("El servicio seleccionado no existe"));
+
+		if (servicio.getIdNegocio() != idNegocio) {
+			throw new BusinessRuleException("El servicio seleccionado no pertenece al negocio indicado");
+		}
+
+		if (servicio.getDuracion() <= 0) {
+			throw new BusinessRuleException("El servicio seleccionado no tiene una duracion valida");
+		}
+
+		return servicio;
+	}
+
+	private List<LocalTime> calcularHorariosDisponibles(int idNegocio, Servicio servicio, LocalDate fecha) {
+		List<Turno> turnosDelDia = turnoRepository.findByNegocioAndFecha(idNegocio, fecha);
+		List<LocalTime> horariosDisponibles = new ArrayList<>();
+
+		LocalTime horaActual = HORA_APERTURA_PLACEHOLDER;
+		while (!horaActual.plusMinutes(servicio.getDuracion()).isAfter(HORA_CIERRE_PLACEHOLDER)) {
+			LocalTime horaFin = horaActual.plusMinutes(servicio.getDuracion());
+
+			if (!tieneChoque(turnosDelDia, horaActual, horaFin)) {
+				horariosDisponibles.add(horaActual);
+			}
+
+			horaActual = horaActual.plusMinutes(SALTO_MINUTOS);
+		}
+
+		return horariosDisponibles;
+	}
+
+	private void validarHorarioDisponible(int idNegocio, Servicio servicio, LocalDate fecha, LocalTime horaInicio) {
+		if (!calcularHorariosDisponibles(idNegocio, servicio, fecha).contains(horaInicio)) {
+			throw new BusinessRuleException("El horario seleccionado ya no esta disponible");
+		}
+	}
+
+	private boolean tieneChoque(List<Turno> turnosDelDia, LocalTime horaInicio, LocalTime horaFin) {
+		for (Turno turno : turnosDelDia) {
+			if (turno.getEstado() == EstadoTurnoEnum.CANCELADO) {
+				continue;
+			}
+
+			if (horaInicio.isBefore(turno.getHoraFin()) && horaFin.isAfter(turno.getHoraInicio())) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private void validarFechaReservable(LocalDate fecha) {
+		if (fecha == null || fecha.isBefore(LocalDate.now())) {
+			throw new BusinessRuleException("La fecha indicada no puede ser anterior a hoy");
+		}
+	}
+
+	private void validarHora(LocalTime horaInicio) {
+		if (horaInicio == null) {
+			throw new BusinessRuleException("La hora indicada no es valida");
+		}
+	}
 }

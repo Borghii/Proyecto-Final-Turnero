@@ -1,6 +1,7 @@
 package turno.controller;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -8,18 +9,39 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import servicio.entity.Servicio;
+import servicio.service.ServicioService;
 import shared.context.AppContext;
-import turno.service.TurnoService;
+import shared.exception.InternalSystemException;
+import shared.exception.ValidationException;
+import shared.web.ViewPaths;
+import shared.web.ViewRenderer;
+import turno.dto.SeleccionarNegocioRequest;
 
-@WebServlet("/turnos")
+@WebServlet("/cliente/turnos/nuevo")
 public class TurnoServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
-	private final TurnoService turnoService = AppContext.getTurnoService();
+	private final ServicioService servicioService = AppContext.getServicioService();
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		response.getWriter().println("TurnoServlet listo");
+		try {
+			SeleccionarNegocioRequest seleccionarNegocioRequest =
+					new SeleccionarNegocioRequest(request.getParameter("idNegocio"));
+
+			List<Servicio> servicios = servicioService.buscarPorNegocio(seleccionarNegocioRequest.getIdNegocio());
+
+			request.setAttribute("servicios", servicios);
+			request.setAttribute("idNegocio", seleccionarNegocioRequest.getIdNegocio());
+
+			ViewRenderer.forward(request, response, ViewPaths.CLIENTE_SELECCIONAR_SERVICIO);
+		} catch (ValidationException e) {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+		} catch (InternalSystemException e) {
+			ViewRenderer.forwardWithError(request, response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+					ViewPaths.CLIENTE_HOME, e.getMessage());
+		}
 	}
 }

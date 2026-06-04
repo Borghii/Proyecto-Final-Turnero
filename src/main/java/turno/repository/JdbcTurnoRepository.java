@@ -18,6 +18,7 @@ import shared.exception.InternalSystemException;
 import turno.dto.TurnoClienteDTO;
 import turno.dto.TurnoConServicio;
 import turno.dto.TurnoParaCancelacion;
+import turno.entity.Turno;
 
 public class JdbcTurnoRepository implements TurnoRepository {
 	private final ConexionDB conexionDB;
@@ -56,6 +57,28 @@ public class JdbcTurnoRepository implements TurnoRepository {
 			AND t.estado <> ?
 			""";
 
+	private static final String SELECT_BY_CLIENTE = """
+			SELECT t.id_turno, t.fecha, t.hora_inicio, t.hora_fin, t.estado,
+				s.nombre AS nombre_servicio, s.precio, n.nombre AS nombre_negocio
+			FROM turnos t
+			JOIN servicios s ON t.id_servicio = s.id_servicio
+			JOIN negocios n ON s.id_negocio = n.id_negocio
+			WHERE t.id_usuario = ?
+			ORDER BY t.fecha DESC, t.hora_inicio DESC
+			""";
+
+	private static final String SELECT_BY_NEGOCIO_AND_FECHA = """
+			SELECT t.id_turno, t.id_servicio, t.id_usuario, t.fecha, t.hora_inicio, t.hora_fin, t.estado
+			FROM turnos t
+			JOIN servicios s ON t.id_servicio = s.id_servicio
+			WHERE s.id_negocio = ? AND t.fecha = ?
+			""";
+
+	private static final String INSERT_TURNO = """
+			INSERT INTO turnos (id_servicio, id_usuario, fecha, hora_inicio, hora_fin, estado)
+			VALUES (?, ?, ?, ?, ?, ?)
+			""";
+
 	public JdbcTurnoRepository(ConexionDB conexionDB) {
 		this.conexionDB = conexionDB;
 	}
@@ -75,7 +98,7 @@ public class JdbcTurnoRepository implements TurnoRepository {
 				List<TurnoConServicio> turnos = new ArrayList<>();
 
 				while (resultSet.next()) {
-					turnos.add(mapTurno(resultSet));
+					turnos.add(mapTurnoConServicio(resultSet));
 				}
 
 				return turnos;
@@ -120,7 +143,67 @@ public class JdbcTurnoRepository implements TurnoRepository {
 		}
 	}
 
-	private TurnoConServicio mapTurno(ResultSet resultSet) {
+	@Override
+	public List<TurnoClienteDTO> findByClienteId(int idUsuario) {
+		List<TurnoClienteDTO> turnos = new ArrayList<>();
+
+		try (Connection connection = conexionDB.getConnection();
+				PreparedStatement statement = connection.prepareStatement(SELECT_BY_CLIENTE)) {
+
+			statement.setInt(1, idUsuario);
+
+			try (ResultSet resultSet = statement.executeQuery()) {
+				while (resultSet.next()) {
+					turnos.add(mapTurnoCliente(resultSet));
+				}
+			}
+		} catch (SQLException e) {
+			throw new InternalSystemException();
+		}
+
+		return turnos;
+	}
+
+	@Override
+	public List<Turno> findByNegocioAndFecha(int idNegocio, LocalDate fecha) {
+		List<Turno> turnos = new ArrayList<>();
+
+		try (Connection connection = conexionDB.getConnection();
+				PreparedStatement statement = connection.prepareStatement(SELECT_BY_NEGOCIO_AND_FECHA)) {
+
+			statement.setInt(1, idNegocio);
+			statement.setDate(2, Date.valueOf(fecha));
+
+			try (ResultSet resultSet = statement.executeQuery()) {
+				while (resultSet.next()) {
+					turnos.add(mapTurno(resultSet));
+				}
+			}
+		} catch (SQLException e) {
+			throw new InternalSystemException();
+		}
+
+		return turnos;
+	}
+
+	@Override
+	public void crear(Turno turno) {
+		try (Connection connection = conexionDB.getConnection();
+				PreparedStatement statement = connection.prepareStatement(INSERT_TURNO)) {
+
+			statement.setInt(1, turno.getIdServicio());
+			statement.setInt(2, turno.getIdUsuario());
+			statement.setDate(3, Date.valueOf(turno.getFecha()));
+			statement.setTime(4, Time.valueOf(turno.getHoraInicio()));
+			statement.setTime(5, Time.valueOf(turno.getHoraFin()));
+			statement.setString(6, turno.getEstado().name());
+			statement.executeUpdate();
+		} catch (SQLException e) {
+			throw new InternalSystemException();
+		}
+	}
+
+	private TurnoConServicio mapTurnoConServicio(ResultSet resultSet) {
 		try {
 			return new TurnoConServicio(
 					resultSet.getInt("id_turno"),
@@ -148,43 +231,35 @@ public class JdbcTurnoRepository implements TurnoRepository {
 			throw new InternalSystemException();
 		}
 	}
-	
-	private static final String SELECT_BY_CLIENTE = """
-            SELECT t.id_turno, t.fecha, t.hora_inicio, t.hora_fin, t.estado, 
-                   s.nombre AS nombre_servicio, s.precio, n.nombre AS nombre_negocio
-            FROM turnos t
-            JOIN servicios s ON t.id_servicio = s.id_servicio
-            JOIN negocios n ON s.id_negocio = n.id_negocio
-            WHERE t.id_usuario = ?
-            ORDER BY t.fecha DESC, t.hora_inicio DESC
-            """;
 
-    @Override
-    public List<TurnoClienteDTO> findByClienteId(int idUsuario) {
-        List<TurnoClienteDTO> turnos = new ArrayList<>();
-        
-        try (Connection connection = conexionDB.getConnection();
-             PreparedStatement statement = connection.prepareStatement(SELECT_BY_CLIENTE)) {
-            
-            statement.setInt(1, idUsuario);
-            
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    turnos.add(new TurnoClienteDTO(
-                        resultSet.getInt("id_turno"),
-                        resultSet.getDate("fecha").toLocalDate(),
-                        resultSet.getTime("hora_inicio").toLocalTime(),
-                        resultSet.getTime("hora_fin").toLocalTime(),
-                        resultSet.getString("nombre_negocio"),
-                        resultSet.getString("nombre_servicio"),
-                        resultSet.getBigDecimal("precio").doubleValue(),
-                        EstadoTurnoEnum.valueOf(resultSet.getString("estado"))
-                    ));
-                }
-            }
-        } catch (SQLException e) {
-            throw new InternalSystemException();
-        }
-        return turnos;
-    }
+	private TurnoClienteDTO mapTurnoCliente(ResultSet resultSet) {
+		try {
+			return new TurnoClienteDTO(
+					resultSet.getInt("id_turno"),
+					resultSet.getDate("fecha").toLocalDate(),
+					resultSet.getTime("hora_inicio").toLocalTime(),
+					resultSet.getTime("hora_fin").toLocalTime(),
+					resultSet.getString("nombre_negocio"),
+					resultSet.getString("nombre_servicio"),
+					resultSet.getBigDecimal("precio").doubleValue(),
+					EstadoTurnoEnum.valueOf(resultSet.getString("estado")));
+		} catch (SQLException e) {
+			throw new InternalSystemException();
+		}
+	}
+
+	private Turno mapTurno(ResultSet resultSet) {
+		try {
+			return new Turno(
+					resultSet.getInt("id_turno"),
+					resultSet.getInt("id_servicio"),
+					resultSet.getInt("id_usuario"),
+					resultSet.getDate("fecha").toLocalDate(),
+					resultSet.getTime("hora_inicio").toLocalTime(),
+					resultSet.getTime("hora_fin").toLocalTime(),
+					EstadoTurnoEnum.valueOf(resultSet.getString("estado")));
+		} catch (SQLException e) {
+			throw new InternalSystemException();
+		}
+	}
 }

@@ -8,8 +8,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class JdbcNegocioRepository implements NegocioRepository {
 	private final ConexionDB conexionDB;
@@ -25,21 +27,39 @@ public class JdbcNegocioRepository implements NegocioRepository {
 			FROM negocios
 			""";
 
+	private static final String FIND_BY_USER_ID = """
+			SELECT id_negocio, ciudad, nombre, id_usuario
+			FROM negocios
+			WHERE id_usuario = ?
+			""";
+
 
 	public JdbcNegocioRepository(ConexionDB conexionDB) {
 		this.conexionDB = conexionDB;
 	}
 
 	@Override
-	public void save(Negocio negocio) {
+	public Negocio save(Negocio negocio) {
 
 		try(Connection connection = conexionDB.getConnection();
-		    PreparedStatement statement = connection.prepareStatement(INSERT_NEGOCIO))
+		    PreparedStatement statement = connection.prepareStatement(INSERT_NEGOCIO, Statement.RETURN_GENERATED_KEYS))
 		{
 			statement.setString(1, negocio.getCiudad());
 			statement.setString(2, negocio.getNombre());
 			statement.setInt(3, negocio.getIdUsuario());
 			statement.executeUpdate();
+
+			try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+				if (generatedKeys.next()) {
+					return new Negocio(
+							generatedKeys.getInt(1),
+							negocio.getCiudad(),
+							negocio.getNombre(),
+							negocio.getIdUsuario());
+				}
+			}
+
+			throw new InternalSystemException();
 		} catch (SQLException e) {
 			throw new InternalSystemException();
 		}
@@ -61,6 +81,26 @@ public class JdbcNegocioRepository implements NegocioRepository {
 		}
 		return negocios;
 	}
+
+	@Override
+	public Optional<Negocio> findByUserId(int userId) {
+
+		try (Connection connection = conexionDB.getConnection();
+		PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_USER_ID) ){
+
+			preparedStatement.setInt(1, userId);
+
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				if (resultSet.next()) {
+					return Optional.of(mapNegocio(resultSet));
+				}
+			}
+
+			return Optional.empty();
+		} catch (SQLException e) {
+			throw new InternalSystemException();
+		}
+    }
 
 	private Negocio mapNegocio(ResultSet resultSet) {
 		try {

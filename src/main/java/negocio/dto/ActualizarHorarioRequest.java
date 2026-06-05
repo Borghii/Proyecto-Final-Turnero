@@ -17,10 +17,10 @@ public class ActualizarHorarioRequest {
 			String tardeDesde, String tardeHasta) {
 		this.dia = parseDia(dia);
 		this.activo = activo;
-		this.mananaDesde = parseHora(mananaDesde, "manana desde");
-		this.mananaHasta = parseHora(mananaHasta, "manana hasta");
-		this.tardeDesde = parseHora(tardeDesde, "tarde desde");
-		this.tardeHasta = parseHora(tardeHasta, "tarde hasta");
+		this.mananaDesde = parseMananaDesde(mananaDesde);
+		this.mananaHasta = parseMananaHasta(mananaHasta);
+		this.tardeDesde = parseTardeDesde(tardeDesde);
+		this.tardeHasta = parseTardeHasta(tardeHasta);
 
 		validarRangos();
 	}
@@ -65,7 +65,7 @@ public class ActualizarHorarioRequest {
 		}
 	}
 
-	private LocalTime parseHora(String hora, String campo) {
+	private LocalTime parseMananaDesde(String hora) {
 		if (hora == null || hora.trim().isEmpty()) {
 			return null;
 		}
@@ -73,15 +73,74 @@ public class ActualizarHorarioRequest {
 		try {
 			LocalTime valor = LocalTime.parse(hora.trim());
 
-			if ((valor.getMinute() != 0 && valor.getMinute() != 30)
-					|| valor.getSecond() != 0 || valor.getNano() != 0) {
-				throw new ValidationException("El horario de " + campo + " debe ser cada 30 minutos");
+			if (!esHorarioCada30Minutos(valor)) {
+				throw new ValidationException("El horario de manana desde debe ser cada 30 minutos");
 			}
 
 			return valor;
 		} catch (DateTimeParseException e) {
-			throw new ValidationException("El horario de " + campo + " no es valido");
+			throw new ValidationException("El horario de manana desde no es valido");
 		}
+	}
+
+	private LocalTime parseMananaHasta(String hora) {
+		if (hora == null || hora.trim().isEmpty()) {
+			return null;
+		}
+
+		try {
+			LocalTime valor = LocalTime.parse(hora.trim());
+
+			if (!esHorarioCada30Minutos(valor)) {
+				throw new ValidationException("El horario de manana hasta debe ser cada 30 minutos");
+			}
+
+			return valor;
+		} catch (DateTimeParseException e) {
+			throw new ValidationException("El horario de manana hasta no es valido");
+		}
+	}
+
+	private LocalTime parseTardeDesde(String hora) {
+		if (hora == null || hora.trim().isEmpty()) {
+			return null;
+		}
+
+		try {
+			LocalTime valor = LocalTime.parse(hora.trim());
+
+			if (!esHorarioCada30Minutos(valor)) {
+				throw new ValidationException("El horario de tarde desde debe ser cada 30 minutos");
+			}
+
+			return valor;
+		} catch (DateTimeParseException e) {
+			throw new ValidationException("El horario de tarde desde no es valido");
+		}
+	}
+
+	private LocalTime parseTardeHasta(String hora) {
+		if (hora == null || hora.trim().isEmpty()) {
+			return null;
+		}
+
+		try {
+			LocalTime valor = LocalTime.parse(hora.trim());
+
+			if (!esHorarioCada30Minutos(valor)) {
+				throw new ValidationException("El horario de tarde hasta debe ser cada 30 minutos");
+			}
+
+			return valor;
+		} catch (DateTimeParseException e) {
+			throw new ValidationException("El horario de tarde hasta no es valido");
+		}
+	}
+
+	private boolean esHorarioCada30Minutos(LocalTime valor) {
+		return (valor.getMinute() == 0 || valor.getMinute() == 30)
+				&& valor.getSecond() == 0
+				&& valor.getNano() == 0;
 	}
 
 	private void validarRangos() {

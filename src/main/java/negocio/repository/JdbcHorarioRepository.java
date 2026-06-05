@@ -22,6 +22,12 @@ public class JdbcHorarioRepository implements HorarioRepository {
 			VALUES (?, ?, ?, ?, ?, ?, ?)
 			""";
 
+	private static final String UPDATE_HORARIO = """
+			UPDATE horarios
+			SET manana_desde = ?, manana_hasta = ?, tarde_desde = ?, tarde_hasta = ?, activo = ?
+			WHERE id_negocio = ? AND dia = ?
+			""";
+
 	private static final String FIND_BY_NEGOCIO_ID = """
 			SELECT dia, manana_desde, manana_hasta, tarde_desde, tarde_hasta, activo
 			FROM horarios
@@ -46,6 +52,28 @@ public class JdbcHorarioRepository implements HorarioRepository {
 				setNullableTime(statement, 5, horario.getTardeDesde());
 				setNullableTime(statement, 6, horario.getTardeHasta());
 				statement.setBoolean(7, horario.isActivo());
+				statement.addBatch();
+			}
+
+			statement.executeBatch();
+		} catch (SQLException e) {
+			throw new InternalSystemException();
+		}
+	}
+
+	@Override
+	public void updateAll(int idNegocio, List<Horario> horarios) {
+		try (Connection connection = conexionDB.getConnection();
+				PreparedStatement statement = connection.prepareStatement(UPDATE_HORARIO)) {
+
+			for (Horario horario : horarios) {
+				setNullableTime(statement, 1, horario.getMananaDesde());
+				setNullableTime(statement, 2, horario.getMananaHasta());
+				setNullableTime(statement, 3, horario.getTardeDesde());
+				setNullableTime(statement, 4, horario.getTardeHasta());
+				statement.setBoolean(5, horario.isActivo());
+				statement.setInt(6, idNegocio);
+				statement.setInt(7, horario.getDia());
 				statement.addBatch();
 			}
 

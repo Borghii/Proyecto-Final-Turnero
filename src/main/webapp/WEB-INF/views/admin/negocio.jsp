@@ -65,6 +65,12 @@
 				<%
 					}
 
+					if ("1".equals(request.getParameter("actualizado"))) {
+				%>
+					<p style="color: green;"><b>Los cambios se guardaron correctamente.</b></p>
+				<%
+					}
+
 					NegocioConHorarios negocio = (NegocioConHorarios) request.getAttribute("negocio");
 
 					if (negocio == null) {
@@ -147,7 +153,7 @@
 						%>
 
 						<br>
-						<button type="submit" disabled>Guardar cambios</button>
+						<button type="submit">Guardar cambios</button>
 					</form>
 				<%
 					}

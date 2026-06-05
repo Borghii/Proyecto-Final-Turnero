@@ -8,6 +8,9 @@ public final class ViewPaths {
 	public static final String ADMIN_NEGOCIO = "/WEB-INF/views/admin/negocio.jsp";
 	public static final String CLIENTE_HOME = "/WEB-INF/views/cliente/home.jsp";
 	public static final String CLIENTE_MIS_TURNOS = "/WEB-INF/views/cliente/mis-turnos.jsp";
+	public static final String CLIENTE_SELECCIONAR_SERVICIO = "/WEB-INF/views/cliente/seleccionar-servicio.jsp";
+	public static final String CLIENTE_CALENDARIO = "/WEB-INF/views/cliente/calendario.jsp";
+	public static final String CLIENTE_CONFIRMAR_TURNO = "/WEB-INF/views/cliente/confirmar-turno.jsp";
 	public static final String ERROR = "/WEB-INF/views/error.jsp";
 
 	private ViewPaths() {

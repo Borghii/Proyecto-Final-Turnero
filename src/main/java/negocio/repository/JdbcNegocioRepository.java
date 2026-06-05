@@ -33,6 +33,12 @@ public class JdbcNegocioRepository implements NegocioRepository {
 			WHERE id_usuario = ?
 			""";
 
+	private static final String UPDATE_NEGOCIO = """
+			UPDATE negocios
+			SET ciudad = ?, nombre = ?
+			WHERE id_negocio = ? AND id_usuario = ?
+			""";
+
 
 	public JdbcNegocioRepository(ConexionDB conexionDB) {
 		this.conexionDB = conexionDB;
@@ -65,6 +71,23 @@ public class JdbcNegocioRepository implements NegocioRepository {
 		}
 
 	}
+
+	@Override
+	public void update(Negocio negocio) {
+		try (Connection connection = conexionDB.getConnection();
+				PreparedStatement statement = connection.prepareStatement(UPDATE_NEGOCIO)) {
+
+			statement.setString(1, negocio.getCiudad());
+			statement.setString(2, negocio.getNombre());
+			statement.setInt(3, negocio.getIdNegocio());
+			statement.setInt(4, negocio.getIdUsuario());
+
+			statement.executeUpdate();
+		} catch (SQLException e) {
+			throw new InternalSystemException();
+		}
+	}
+
 	@Override
 	public List<Negocio> findAll() {
 		List<Negocio> negocios = new ArrayList<>();

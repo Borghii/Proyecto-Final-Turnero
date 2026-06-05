@@ -102,10 +102,7 @@ public class TurnoServiceImpl implements TurnoService {
 				horaInicio.plusMinutes(servicio.getDuracion()),
 				EstadoTurnoEnum.CONFIRMADO);
 
-		boolean reservado = turnoRepository.crearSiNoExisteChoque(idNegocio, turno);
-		if (!reservado) {
-			throw new BusinessRuleException("El horario seleccionado ya no esta disponible");
-		}
+		turnoRepository.save(turno);
 	}
 
 	@Override
@@ -166,9 +163,7 @@ public class TurnoServiceImpl implements TurnoService {
 
 		LocalTime horaActual = horaDesde;
 		while (!horaActual.plusMinutes(servicio.getDuracion()).isAfter(horaHasta)) {
-			LocalTime horaFin = horaActual.plusMinutes(servicio.getDuracion());
-
-			if (esHorarioReservable(fecha, horaActual) && !tieneChoque(turnosDelDia, horaActual, horaFin)) {
+			if (esHorarioReservable(fecha, horaActual) && !estaOcupado(turnosDelDia, horaActual)) {
 				horariosDisponibles.add(horaActual);
 			}
 
@@ -182,13 +177,9 @@ public class TurnoServiceImpl implements TurnoService {
 		}
 	}
 
-	private boolean tieneChoque(List<Turno> turnosDelDia, LocalTime horaInicio, LocalTime horaFin) {
+	private boolean estaOcupado(List<Turno> turnosDelDia, LocalTime horaInicio) {
 		for (Turno turno : turnosDelDia) {
-			if (turno.getEstado() == EstadoTurnoEnum.CANCELADO) {
-				continue;
-			}
-
-			if (horaInicio.isBefore(turno.getHoraFin()) && horaFin.isAfter(turno.getHoraInicio())) {
+			if (turno.getEstado() == EstadoTurnoEnum.CONFIRMADO && turno.getHoraInicio().equals(horaInicio)) {
 				return true;
 			}
 		}

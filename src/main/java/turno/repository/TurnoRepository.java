@@ -21,5 +21,5 @@ public interface TurnoRepository {
 
 	List<Turno> findByNegocioAndFecha(int idNegocio, LocalDate fecha);
 
-	boolean crearSiNoExisteChoque(int idNegocio, Turno turno);
+	void save(Turno turno);
 }

@@ -11,8 +11,8 @@ public class CalendarioTurnoRequest {
 	private final LocalDate fecha;
 
 	public CalendarioTurnoRequest(String idNegocio, String idServicio, String fecha) {
-		this.idNegocio = parsePositiveInt(idNegocio, "El negocio indicado no es valido");
-		this.idServicio = parsePositiveInt(idServicio, "El servicio indicado no es valido");
+		this.idNegocio = parseIdNegocio(idNegocio);
+		this.idServicio = parseIdServicio(idServicio);
 		this.fecha = parseFecha(fecha);
 	}
 
@@ -28,19 +28,35 @@ public class CalendarioTurnoRequest {
 		return fecha;
 	}
 
-	private static int parsePositiveInt(String value, String message) {
+	private static int parseIdNegocio(String value) {
 		if (value == null || value.trim().isEmpty()) {
-			throw new ValidationException(message);
+			throw new ValidationException("El negocio indicado no es valido");
 		}
 
 		try {
 			int parsedValue = Integer.parseInt(value.trim());
 			if (parsedValue <= 0) {
-				throw new ValidationException(message);
+				throw new ValidationException("El negocio indicado no es valido");
 			}
 			return parsedValue;
 		} catch (NumberFormatException e) {
-			throw new ValidationException(message);
+			throw new ValidationException("El negocio indicado no es valido");
+		}
+	}
+
+	private static int parseIdServicio(String value) {
+		if (value == null || value.trim().isEmpty()) {
+			throw new ValidationException("El servicio indicado no es valido");
+		}
+
+		try {
+			int parsedValue = Integer.parseInt(value.trim());
+			if (parsedValue <= 0) {
+				throw new ValidationException("El servicio indicado no es valido");
+			}
+			return parsedValue;
+		} catch (NumberFormatException e) {
+			throw new ValidationException("El servicio indicado no es valido");
 		}
 	}
 

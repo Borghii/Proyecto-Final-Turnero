@@ -36,6 +36,15 @@
 				<hr style="width: 50%; text-align: left; margin-left: 0;">
 
 				<%
+					String error = (String) request.getAttribute("error");
+					if (error != null) {
+				%>
+					<p style="color: red;"><b><%= error %></b></p>
+				<%
+					}
+				%>
+
+				<%
 					Integer idNegocio = (Integer) request.getAttribute("idNegocio");
 					Integer idServicio = (Integer) request.getAttribute("idServicio");
 					LocalDate fechaSeleccionada = (LocalDate) request.getAttribute("fechaSeleccionada");

@@ -29,6 +29,7 @@ public class AdminHomeServlet extends HttpServlet {
 			throws ServletException, IOException {
 		HttpSession session = request.getSession(false);
 		int idUsuario = UserSession.getUserId(session);
+		cargarError(request, session);
 
 		try {
 			List<TurnoConServicio> turnos = turnoService.findUpcomingByBusinessOwner(idUsuario);
@@ -40,5 +41,13 @@ public class AdminHomeServlet extends HttpServlet {
 		}
 
 		ViewRenderer.forward(request, response, ViewPaths.ADMIN_HOME);
+	}
+
+	private void cargarError(HttpServletRequest request, HttpSession session) {
+		String error = (String) session.getAttribute("error");
+		if (error != null) {
+			request.setAttribute("error", error);
+			session.removeAttribute("error");
+		}
 	}
 }

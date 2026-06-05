@@ -9,6 +9,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import shared.context.AppContext;
 import shared.exception.BusinessRuleException;
@@ -44,16 +45,37 @@ public class CalendarioServlet extends HttpServlet {
 			request.setAttribute("idNegocio", calendarioRequest.getIdNegocio());
 			request.setAttribute("idServicio", calendarioRequest.getIdServicio());
 			request.setAttribute("fechaSeleccionada", calendarioRequest.getFecha());
+			cargarError(request);
 
 			ViewRenderer.forward(request, response, ViewPaths.CLIENTE_CALENDARIO);
 		} catch (ValidationException e) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+			redirectConErrorHome(request, response, e.getMessage());
 		} catch (ResourceNotFoundException e) {
-			response.sendError(HttpServletResponse.SC_NOT_FOUND, e.getMessage());
+			redirectConErrorHome(request, response, e.getMessage());
 		} catch (BusinessRuleException e) {
-			response.sendError(HttpServletResponse.SC_CONFLICT, e.getMessage());
+			redirectConErrorHome(request, response, e.getMessage());
 		} catch (InternalSystemException e) {
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+			redirectConErrorHome(request, response, e.getMessage());
 		}
+	}
+
+	private void cargarError(HttpServletRequest request) {
+		HttpSession session = request.getSession(false);
+		if (session == null) {
+			return;
+		}
+
+		String error = (String) session.getAttribute("error");
+		if (error != null) {
+			request.setAttribute("error", error);
+			session.removeAttribute("error");
+		}
+	}
+
+	private void redirectConErrorHome(HttpServletRequest request, HttpServletResponse response, String message)
+			throws IOException {
+		HttpSession session = request.getSession();
+		session.setAttribute("error", message);
+		response.sendRedirect(request.getContextPath() + "/cliente/home");
 	}
 }

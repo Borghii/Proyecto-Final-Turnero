@@ -37,15 +37,22 @@ public class CancelarTurnoServlet extends HttpServlet {
 			turnoService.cancelarTurno(cancelarTurnoRequest.getIdTurno(), idUsuario);
 			response.sendRedirect(request.getContextPath() + "/admin/home");
 		} catch (ValidationException e) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+			redirectConError(request, response, e.getMessage());
 		} catch (ResourceNotFoundException e) {
-			response.sendError(HttpServletResponse.SC_NOT_FOUND, e.getMessage());
+			redirectConError(request, response, e.getMessage());
 		} catch (AuthorizationException e) {
-			response.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
+			redirectConError(request, response, e.getMessage());
 		} catch (BusinessRuleException e) {
-			response.sendError(HttpServletResponse.SC_CONFLICT, e.getMessage());
+			redirectConError(request, response, e.getMessage());
 		} catch (InternalSystemException e) {
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+			redirectConError(request, response, e.getMessage());
 		}
+	}
+
+	private void redirectConError(HttpServletRequest request, HttpServletResponse response, String message)
+			throws IOException {
+		HttpSession session = request.getSession();
+		session.setAttribute("error", message);
+		response.sendRedirect(request.getContextPath() + "/admin/home");
 	}
 }

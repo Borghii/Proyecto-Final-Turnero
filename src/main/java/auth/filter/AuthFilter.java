@@ -14,6 +14,8 @@ import javax.servlet.http.HttpSession;
 
 import auth.session.UserSession;
 import shared.enums.RolEnum;
+import shared.web.ViewPaths;
+import shared.web.ViewRenderer;
 
 @WebFilter(urlPatterns = { "/admin/*", "/cliente/*" })
 public class AuthFilter implements Filter {
@@ -39,12 +41,14 @@ public class AuthFilter implements Filter {
 		String uri = request.getRequestURI();
 
 		if (uri.contains("/admin/") && role != RolEnum.ADMIN) {
-			response.sendError(HttpServletResponse.SC_FORBIDDEN, "No tenes permisos para acceder al panel de administrador");
+			ViewRenderer.forwardWithError(request, response, HttpServletResponse.SC_FORBIDDEN,
+					ViewPaths.ERROR, "No tenes permisos para acceder al panel de administrador");
 			return;
 		}
 
 		if (uri.contains("/cliente/") && role != RolEnum.CLIENTE) {
-			response.sendError(HttpServletResponse.SC_FORBIDDEN, "No tenes permisos para acceder al panel de cliente");
+			ViewRenderer.forwardWithError(request, response, HttpServletResponse.SC_FORBIDDEN,
+					ViewPaths.ERROR, "No tenes permisos para acceder al panel de cliente");
 			return;
 		}
 

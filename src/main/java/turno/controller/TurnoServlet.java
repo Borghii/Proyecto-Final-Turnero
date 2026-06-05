@@ -8,11 +8,13 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import servicio.entity.Servicio;
 import servicio.service.ServicioService;
 import shared.context.AppContext;
 import shared.exception.InternalSystemException;
+import shared.exception.ResourceNotFoundException;
 import shared.exception.ValidationException;
 import shared.web.ViewPaths;
 import shared.web.ViewRenderer;
@@ -38,10 +40,18 @@ public class TurnoServlet extends HttpServlet {
 
 			ViewRenderer.forward(request, response, ViewPaths.CLIENTE_SELECCIONAR_SERVICIO);
 		} catch (ValidationException e) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+			redirectConErrorHome(request, response, e.getMessage());
+		} catch (ResourceNotFoundException e) {
+			redirectConErrorHome(request, response, e.getMessage());
 		} catch (InternalSystemException e) {
-			ViewRenderer.forwardWithError(request, response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-					ViewPaths.CLIENTE_HOME, e.getMessage());
+			redirectConErrorHome(request, response, e.getMessage());
 		}
+	}
+
+	private void redirectConErrorHome(HttpServletRequest request, HttpServletResponse response, String message)
+			throws IOException {
+		HttpSession session = request.getSession();
+		session.setAttribute("error", message);
+		response.sendRedirect(request.getContextPath() + "/cliente/home");
 	}
 }

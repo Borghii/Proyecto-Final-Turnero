@@ -41,13 +41,13 @@ public class ConfirmarTurnoServlet extends HttpServlet {
 			request.setAttribute("confirmacion", confirmacion);
 			ViewRenderer.forward(request, response, ViewPaths.CLIENTE_CONFIRMAR_TURNO);
 		} catch (ValidationException e) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+			redirectConErrorCalendario(request, response, e.getMessage());
 		} catch (ResourceNotFoundException e) {
-			response.sendError(HttpServletResponse.SC_NOT_FOUND, e.getMessage());
+			redirectConErrorCalendario(request, response, e.getMessage());
 		} catch (BusinessRuleException e) {
-			response.sendError(HttpServletResponse.SC_CONFLICT, e.getMessage());
+			redirectConErrorCalendario(request, response, e.getMessage());
 		} catch (InternalSystemException e) {
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+			redirectConErrorCalendario(request, response, e.getMessage());
 		}
 	}
 
@@ -68,13 +68,13 @@ public class ConfirmarTurnoServlet extends HttpServlet {
 
 			response.sendRedirect(request.getContextPath() + "/cliente/turnos");
 		} catch (ValidationException e) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+			redirectConErrorCalendario(request, response, e.getMessage());
 		} catch (ResourceNotFoundException e) {
-			response.sendError(HttpServletResponse.SC_NOT_FOUND, e.getMessage());
+			redirectConErrorCalendario(request, response, e.getMessage());
 		} catch (BusinessRuleException e) {
-			response.sendError(HttpServletResponse.SC_CONFLICT, e.getMessage());
+			redirectConErrorCalendario(request, response, e.getMessage());
 		} catch (InternalSystemException e) {
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+			redirectConErrorCalendario(request, response, e.getMessage());
 		}
 	}
 
@@ -84,5 +84,27 @@ public class ConfirmarTurnoServlet extends HttpServlet {
 				request.getParameter("idServicio"),
 				request.getParameter("fecha"),
 				request.getParameter("hora"));
+	}
+
+	private void redirectConErrorCalendario(HttpServletRequest request, HttpServletResponse response, String message)
+			throws IOException {
+		HttpSession session = request.getSession();
+		session.setAttribute("error", message);
+
+		String idNegocio = request.getParameter("idNegocio");
+		String idServicio = request.getParameter("idServicio");
+		String fecha = request.getParameter("fecha");
+
+		if (idNegocio == null || idNegocio.trim().isEmpty()
+				|| idServicio == null || idServicio.trim().isEmpty()
+				|| fecha == null || fecha.trim().isEmpty()) {
+			response.sendRedirect(request.getContextPath() + "/cliente/home");
+			return;
+		}
+
+		response.sendRedirect(request.getContextPath() + "/cliente/turnos/calendario"
+				+ "?idNegocio=" + idNegocio
+				+ "&idServicio=" + idServicio
+				+ "&fecha=" + fecha);
 	}
 }

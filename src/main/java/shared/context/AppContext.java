@@ -2,6 +2,8 @@ package shared.context;
 
 import auth.service.AuthService;
 import auth.service.AuthServiceImpl;
+import negocio.repository.HorarioRepository;
+import negocio.repository.JdbcHorarioRepository;
 import negocio.repository.JdbcNegocioRepository;
 import negocio.repository.NegocioRepository;
 import negocio.service.NegocioService;
@@ -28,15 +30,17 @@ public final class AppContext {
 
 	private static final UsuarioRepository usuarioRepository = new JdbcUsuarioRepository(conexionDB);
 	private static final NegocioRepository negocioRepository = new JdbcNegocioRepository(conexionDB);
+	private static final HorarioRepository horarioRepository = new JdbcHorarioRepository(conexionDB);
 	private static final ServicioRepository servicioRepository = new JdbcServicioRepository(conexionDB);
 	private static final TurnoRepository turnoRepository = new JdbcTurnoRepository(conexionDB);
 
 
-	private static final NegocioService negocioService = new NegocioServiceImpl(negocioRepository);
+	private static final NegocioService negocioService = new NegocioServiceImpl(negocioRepository, horarioRepository);
 	private static final UsuarioService usuarioService = new UsuarioServiceImpl(usuarioRepository);
 	private static final AuthService authService = new AuthServiceImpl(usuarioService, negocioService);
-	private static final ServicioService servicioService = new ServicioServiceImpl(servicioRepository);
-	private static final TurnoService turnoService = new TurnoServiceImpl(turnoRepository, servicioRepository);
+	private static final ServicioService servicioService = new ServicioServiceImpl(servicioRepository, negocioRepository);
+	private static final TurnoService turnoService =
+			new TurnoServiceImpl(turnoRepository, servicioRepository, horarioRepository);
 
 	private AppContext() {
 	}

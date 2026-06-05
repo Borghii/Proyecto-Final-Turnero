@@ -8,6 +8,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import negocio.entity.Negocio;
 import negocio.service.NegocioService;
@@ -25,6 +26,9 @@ public class ClienteHomeServlet extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
+		HttpSession session = request.getSession(false);
+		cargarError(request, session);
+
 		try {
 			List<Negocio> listaNegocios = negocioService.obtenerTodosLosNegocios();
 			
@@ -35,6 +39,18 @@ public class ClienteHomeServlet extends HttpServlet {
 		} catch (InternalSystemException e) {
 			ViewRenderer.forwardWithError(request, response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
 					ViewPaths.CLIENTE_HOME, e.getMessage());
+		}
+	}
+
+	private void cargarError(HttpServletRequest request, HttpSession session) {
+		if (session == null) {
+			return;
+		}
+
+		String error = (String) session.getAttribute("error");
+		if (error != null) {
+			request.setAttribute("error", error);
+			session.removeAttribute("error");
 		}
 	}
 }

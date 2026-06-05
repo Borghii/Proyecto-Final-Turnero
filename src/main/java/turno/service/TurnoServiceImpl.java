@@ -5,6 +5,8 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import negocio.entity.Horario;
+import negocio.repository.HorarioRepository;
 import servicio.entity.Servicio;
 import servicio.repository.ServicioRepository;
 import shared.enums.EstadoTurnoEnum;
@@ -19,16 +21,17 @@ import turno.entity.Turno;
 import turno.repository.TurnoRepository;
 
 public class TurnoServiceImpl implements TurnoService {
-	private static final LocalTime HORA_APERTURA_PLACEHOLDER = LocalTime.of(9, 0);
-	private static final LocalTime HORA_CIERRE_PLACEHOLDER = LocalTime.of(18, 0);
 	private static final int SALTO_MINUTOS = 30;
 
 	private final TurnoRepository turnoRepository;
 	private final ServicioRepository servicioRepository;
+	private final HorarioRepository horarioRepository;
 
-	public TurnoServiceImpl(TurnoRepository turnoRepository, ServicioRepository servicioRepository) {
+	public TurnoServiceImpl(TurnoRepository turnoRepository, ServicioRepository servicioRepository,
+			HorarioRepository horarioRepository) {
 		this.turnoRepository = turnoRepository;
 		this.servicioRepository = servicioRepository;
+		this.horarioRepository = horarioRepository;
 	}
 
 	@Override
@@ -99,7 +102,10 @@ public class TurnoServiceImpl implements TurnoService {
 				horaInicio.plusMinutes(servicio.getDuracion()),
 				EstadoTurnoEnum.CONFIRMADO);
 
-		turnoRepository.crear(turno);
+		boolean reservado = turnoRepository.crearSiNoExisteChoque(idNegocio, turno);
+		if (!reservado) {
+			throw new BusinessRuleException("El horario seleccionado ya no esta disponible");
+		}
 	}
 
 	@Override
@@ -126,18 +132,48 @@ public class TurnoServiceImpl implements TurnoService {
 		List<Turno> turnosDelDia = turnoRepository.findByNegocioAndFecha(idNegocio, fecha);
 		List<LocalTime> horariosDisponibles = new ArrayList<>();
 
-		LocalTime horaActual = HORA_APERTURA_PLACEHOLDER;
-		while (!horaActual.plusMinutes(servicio.getDuracion()).isAfter(HORA_CIERRE_PLACEHOLDER)) {
+		Horario horario = obtenerHorarioDelDia(idNegocio, fecha);
+		if (horario == null || !horario.isActivo()) {
+			return horariosDisponibles;
+		}
+
+		agregarHorariosDelBloque(horariosDisponibles, turnosDelDia, servicio, fecha,
+				horario.getMananaDesde(), horario.getMananaHasta());
+		agregarHorariosDelBloque(horariosDisponibles, turnosDelDia, servicio, fecha,
+				horario.getTardeDesde(), horario.getTardeHasta());
+
+		return horariosDisponibles;
+	}
+
+	private Horario obtenerHorarioDelDia(int idNegocio, LocalDate fecha) {
+		int dia = fecha.getDayOfWeek().getValue();
+		List<Horario> horarios = horarioRepository.findByNegocioId(idNegocio);
+
+		for (Horario horario : horarios) {
+			if (horario.getDia() == dia) {
+				return horario;
+			}
+		}
+
+		return null;
+	}
+
+	private void agregarHorariosDelBloque(List<LocalTime> horariosDisponibles, List<Turno> turnosDelDia,
+			Servicio servicio, LocalDate fecha, LocalTime horaDesde, LocalTime horaHasta) {
+		if (horaDesde == null || horaHasta == null) {
+			return;
+		}
+
+		LocalTime horaActual = horaDesde;
+		while (!horaActual.plusMinutes(servicio.getDuracion()).isAfter(horaHasta)) {
 			LocalTime horaFin = horaActual.plusMinutes(servicio.getDuracion());
 
-			if (!tieneChoque(turnosDelDia, horaActual, horaFin)) {
+			if (esHorarioReservable(fecha, horaActual) && !tieneChoque(turnosDelDia, horaActual, horaFin)) {
 				horariosDisponibles.add(horaActual);
 			}
 
 			horaActual = horaActual.plusMinutes(SALTO_MINUTOS);
 		}
-
-		return horariosDisponibles;
 	}
 
 	private void validarHorarioDisponible(int idNegocio, Servicio servicio, LocalDate fecha, LocalTime horaInicio) {
@@ -158,6 +194,10 @@ public class TurnoServiceImpl implements TurnoService {
 		}
 
 		return false;
+	}
+
+	private boolean esHorarioReservable(LocalDate fecha, LocalTime horaInicio) {
+		return !fecha.equals(LocalDate.now()) || !horaInicio.isBefore(LocalTime.now());
 	}
 
 	private void validarFechaReservable(LocalDate fecha) {

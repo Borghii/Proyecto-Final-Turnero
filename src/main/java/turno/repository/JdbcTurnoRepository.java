@@ -79,6 +79,18 @@ public class JdbcTurnoRepository implements TurnoRepository {
 			VALUES (?, ?, ?, ?, ?, ?)
 			""";
 
+	private static final String SELECT_CHOQUE_FOR_UPDATE = """
+			SELECT t.id_turno
+			FROM turnos t
+			JOIN servicios s ON t.id_servicio = s.id_servicio
+			WHERE s.id_negocio = ?
+			AND t.fecha = ?
+			AND t.estado <> ?
+			AND t.hora_inicio < ?
+			AND t.hora_fin > ?
+			FOR UPDATE
+			""";
+
 	public JdbcTurnoRepository(ConexionDB conexionDB) {
 		this.conexionDB = conexionDB;
 	}
@@ -187,10 +199,43 @@ public class JdbcTurnoRepository implements TurnoRepository {
 	}
 
 	@Override
-	public void crear(Turno turno) {
-		try (Connection connection = conexionDB.getConnection();
-				PreparedStatement statement = connection.prepareStatement(INSERT_TURNO)) {
+	public boolean crearSiNoExisteChoque(int idNegocio, Turno turno) {
+		try (Connection connection = conexionDB.getConnection()) {
+			connection.setAutoCommit(false);
 
+			if (existeChoque(connection, idNegocio, turno)) {
+				connection.rollback();
+				return false;
+			}
+
+			insertar(connection, turno);
+			connection.commit();
+			return true;
+		} catch (SQLException e) {
+			if (esDuplicado(e)) {
+				return false;
+			}
+
+			throw new InternalSystemException();
+		}
+	}
+
+	private boolean existeChoque(Connection connection, int idNegocio, Turno turno) throws SQLException {
+		try (PreparedStatement statement = connection.prepareStatement(SELECT_CHOQUE_FOR_UPDATE)) {
+			statement.setInt(1, idNegocio);
+			statement.setDate(2, Date.valueOf(turno.getFecha()));
+			statement.setString(3, EstadoTurnoEnum.CANCELADO.name());
+			statement.setTime(4, Time.valueOf(turno.getHoraFin()));
+			statement.setTime(5, Time.valueOf(turno.getHoraInicio()));
+
+			try (ResultSet resultSet = statement.executeQuery()) {
+				return resultSet.next();
+			}
+		}
+	}
+
+	private void insertar(Connection connection, Turno turno) throws SQLException {
+		try (PreparedStatement statement = connection.prepareStatement(INSERT_TURNO)) {
 			statement.setInt(1, turno.getIdServicio());
 			statement.setInt(2, turno.getIdUsuario());
 			statement.setDate(3, Date.valueOf(turno.getFecha()));
@@ -198,9 +243,11 @@ public class JdbcTurnoRepository implements TurnoRepository {
 			statement.setTime(5, Time.valueOf(turno.getHoraFin()));
 			statement.setString(6, turno.getEstado().name());
 			statement.executeUpdate();
-		} catch (SQLException e) {
-			throw new InternalSystemException();
 		}
+	}
+
+	private boolean esDuplicado(SQLException e) {
+		return e.getErrorCode() == 1062;
 	}
 
 	private TurnoConServicio mapTurnoConServicio(ResultSet resultSet) {

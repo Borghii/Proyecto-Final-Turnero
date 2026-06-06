@@ -156,7 +156,9 @@ public class TurnoServiceImpl implements TurnoService {
 
 		LocalTime horaActual = horaDesde;
 		while (!horaActual.plusMinutes(servicio.getDuracion()).isAfter(horaHasta)) {
-			if (esHorarioReservable(fecha, horaActual) && !estaOcupado(turnosDelDia, horaActual)) {
+			LocalTime horaFin = horaActual.plusMinutes(servicio.getDuracion());
+
+			if (esHorarioReservable(fecha, horaActual) && !estaOcupado(turnosDelDia, horaActual, horaFin)) {
 				horariosDisponibles.add(horaActual);
 			}
 
@@ -170,9 +172,13 @@ public class TurnoServiceImpl implements TurnoService {
 		}
 	}
 
-	private boolean estaOcupado(List<Turno> turnosDelDia, LocalTime horaInicio) {
+	private boolean estaOcupado(List<Turno> turnosDelDia, LocalTime horaInicio, LocalTime horaFin) {
 		for (Turno turno : turnosDelDia) {
-			if (turno.getEstado() == EstadoTurnoEnum.CONFIRMADO && turno.getHoraInicio().equals(horaInicio)) {
+			if (turno.getEstado() == EstadoTurnoEnum.CANCELADO) {
+				continue;
+			}
+
+			if (horaInicio.isBefore(turno.getHoraFin()) && horaFin.isAfter(turno.getHoraInicio())) {
 				return true;
 			}
 		}

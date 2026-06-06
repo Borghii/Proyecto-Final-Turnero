@@ -29,4 +29,13 @@ public final class ViewRenderer {
 		session.setAttribute("error", message);
 		response.sendRedirect(request.getContextPath() + path);
 	}
+
+	public static void cargarError(HttpServletRequest request) {
+		HttpSession session = request.getSession(false);
+		String error = (String) session.getAttribute("error");
+		if (error != null) {
+			request.setAttribute("error", error);
+			session.removeAttribute("error");
+		}
+	}
 }

@@ -9,7 +9,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import shared.context.AppContext;
 import shared.exception.BusinessRuleException;
@@ -45,7 +44,7 @@ public class CalendarioServlet extends HttpServlet {
 			request.setAttribute("idNegocio", calendarioRequest.getIdNegocio());
 			request.setAttribute("idServicio", calendarioRequest.getIdServicio());
 			request.setAttribute("fechaSeleccionada", calendarioRequest.getFecha());
-			cargarError(request);
+			ViewRenderer.cargarError(request);
 
 			ViewRenderer.forward(request, response, ViewPaths.CLIENTE_CALENDARIO);
 		} catch (ValidationException e) {
@@ -56,19 +55,6 @@ public class CalendarioServlet extends HttpServlet {
 			ViewRenderer.redirectWithError(request, response, "/cliente/home", e.getMessage());
 		} catch (InternalSystemException e) {
 			ViewRenderer.redirectWithError(request, response, "/cliente/home", e.getMessage());
-		}
-	}
-
-	private void cargarError(HttpServletRequest request) {
-		HttpSession session = request.getSession(false);
-		if (session == null) {
-			return;
-		}
-
-		String error = (String) session.getAttribute("error");
-		if (error != null) {
-			request.setAttribute("error", error);
-			session.removeAttribute("error");
 		}
 	}
 

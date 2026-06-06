@@ -60,7 +60,6 @@ public class TurnoServiceImpl implements TurnoService {
 
 	@Override
 	public List<LocalTime> obtenerHorariosDisponibles(int idNegocio, int idServicio, LocalDate fecha) {
-		validarFechaReservable(fecha);
 		Servicio servicio = obtenerServicioDelNegocio(idNegocio, idServicio);
 		return calcularHorariosDisponibles(idNegocio, servicio, fecha);
 	}
@@ -68,9 +67,6 @@ public class TurnoServiceImpl implements TurnoService {
 	@Override
 	public ConfirmacionTurnoDTO obtenerConfirmacionTurno(int idNegocio, int idServicio, LocalDate fecha,
 			LocalTime horaInicio) {
-		validarFechaReservable(fecha);
-		validarHora(horaInicio);
-
 		Servicio servicio = obtenerServicioDelNegocio(idNegocio, idServicio);
 		validarHorarioDisponible(idNegocio, servicio, fecha, horaInicio);
 
@@ -87,9 +83,6 @@ public class TurnoServiceImpl implements TurnoService {
 
 	@Override
 	public void reservarTurno(int idNegocio, int idServicio, int idUsuario, LocalDate fecha, LocalTime horaInicio) {
-		validarFechaReservable(fecha);
-		validarHora(horaInicio);
-
 		Servicio servicio = obtenerServicioDelNegocio(idNegocio, idServicio);
 		validarHorarioDisponible(idNegocio, servicio, fecha, horaInicio);
 
@@ -189,17 +182,5 @@ public class TurnoServiceImpl implements TurnoService {
 
 	private boolean esHorarioReservable(LocalDate fecha, LocalTime horaInicio) {
 		return !fecha.equals(LocalDate.now()) || !horaInicio.isBefore(LocalTime.now());
-	}
-
-	private void validarFechaReservable(LocalDate fecha) {
-		if (fecha == null || fecha.isBefore(LocalDate.now())) {
-			throw new BusinessRuleException("La fecha indicada no puede ser anterior a hoy");
-		}
-	}
-
-	private void validarHora(LocalTime horaInicio) {
-		if (horaInicio == null) {
-			throw new BusinessRuleException("La hora indicada no es valida");
-		}
 	}
 }

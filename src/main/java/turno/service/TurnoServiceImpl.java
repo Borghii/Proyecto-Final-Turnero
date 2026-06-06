@@ -87,7 +87,6 @@ public class TurnoServiceImpl implements TurnoService {
 		validarHorarioDisponible(idNegocio, servicio, fecha, horaInicio);
 
 		Turno turno = new Turno(
-				0,
 				servicio.getIdServicio(),
 				idUsuario,
 				fecha,

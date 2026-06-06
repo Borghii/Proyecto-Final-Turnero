@@ -88,9 +88,6 @@ public class ConfirmarTurnoServlet extends HttpServlet {
 
 	private void redirectConErrorCalendario(HttpServletRequest request, HttpServletResponse response, String message)
 			throws IOException {
-		HttpSession session = request.getSession();
-		session.setAttribute("error", message);
-
 		String idNegocio = request.getParameter("idNegocio");
 		String idServicio = request.getParameter("idServicio");
 		String fecha = request.getParameter("fecha");
@@ -98,13 +95,14 @@ public class ConfirmarTurnoServlet extends HttpServlet {
 		if (idNegocio == null || idNegocio.trim().isEmpty()
 				|| idServicio == null || idServicio.trim().isEmpty()
 				|| fecha == null || fecha.trim().isEmpty()) {
-			response.sendRedirect(request.getContextPath() + "/cliente/home");
+			ViewRenderer.redirectWithError(request, response, "/cliente/home", message);
 			return;
 		}
 
-		response.sendRedirect(request.getContextPath() + "/cliente/turnos/calendario"
+		ViewRenderer.redirectWithError(request, response, "/cliente/turnos/calendario"
 				+ "?idNegocio=" + idNegocio
 				+ "&idServicio=" + idServicio
-				+ "&fecha=" + fecha);
+				+ "&fecha=" + fecha,
+				message);
 	}
 }

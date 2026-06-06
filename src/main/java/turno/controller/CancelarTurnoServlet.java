@@ -16,6 +16,7 @@ import shared.exception.BusinessRuleException;
 import shared.exception.InternalSystemException;
 import shared.exception.ResourceNotFoundException;
 import shared.exception.ValidationException;
+import shared.web.ViewRenderer;
 import turno.dto.CancelarTurnoRequest;
 import turno.service.TurnoService;
 
@@ -37,22 +38,15 @@ public class CancelarTurnoServlet extends HttpServlet {
 			turnoService.cancelarTurno(cancelarTurnoRequest.getIdTurno(), idUsuario);
 			response.sendRedirect(request.getContextPath() + "/admin/home");
 		} catch (ValidationException e) {
-			redirectConError(request, response, e.getMessage());
+			ViewRenderer.redirectWithError(request, response, "/admin/home", e.getMessage());
 		} catch (ResourceNotFoundException e) {
-			redirectConError(request, response, e.getMessage());
+			ViewRenderer.redirectWithError(request, response, "/admin/home", e.getMessage());
 		} catch (AuthorizationException e) {
-			redirectConError(request, response, e.getMessage());
+			ViewRenderer.redirectWithError(request, response, "/admin/home", e.getMessage());
 		} catch (BusinessRuleException e) {
-			redirectConError(request, response, e.getMessage());
+			ViewRenderer.redirectWithError(request, response, "/admin/home", e.getMessage());
 		} catch (InternalSystemException e) {
-			redirectConError(request, response, e.getMessage());
+			ViewRenderer.redirectWithError(request, response, "/admin/home", e.getMessage());
 		}
-	}
-
-	private void redirectConError(HttpServletRequest request, HttpServletResponse response, String message)
-			throws IOException {
-		HttpSession session = request.getSession();
-		session.setAttribute("error", message);
-		response.sendRedirect(request.getContextPath() + "/admin/home");
 	}
 }

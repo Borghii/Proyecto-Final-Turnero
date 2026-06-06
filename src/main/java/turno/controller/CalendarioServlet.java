@@ -49,13 +49,13 @@ public class CalendarioServlet extends HttpServlet {
 
 			ViewRenderer.forward(request, response, ViewPaths.CLIENTE_CALENDARIO);
 		} catch (ValidationException e) {
-			redirectConErrorHome(request, response, e.getMessage());
+			ViewRenderer.redirectWithError(request, response, "/cliente/home", e.getMessage());
 		} catch (ResourceNotFoundException e) {
-			redirectConErrorHome(request, response, e.getMessage());
+			ViewRenderer.redirectWithError(request, response, "/cliente/home", e.getMessage());
 		} catch (BusinessRuleException e) {
-			redirectConErrorHome(request, response, e.getMessage());
+			ViewRenderer.redirectWithError(request, response, "/cliente/home", e.getMessage());
 		} catch (InternalSystemException e) {
-			redirectConErrorHome(request, response, e.getMessage());
+			ViewRenderer.redirectWithError(request, response, "/cliente/home", e.getMessage());
 		}
 	}
 
@@ -72,10 +72,4 @@ public class CalendarioServlet extends HttpServlet {
 		}
 	}
 
-	private void redirectConErrorHome(HttpServletRequest request, HttpServletResponse response, String message)
-			throws IOException {
-		HttpSession session = request.getSession();
-		session.setAttribute("error", message);
-		response.sendRedirect(request.getContextPath() + "/cliente/home");
-	}
 }

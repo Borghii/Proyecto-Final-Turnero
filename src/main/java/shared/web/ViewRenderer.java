@@ -5,6 +5,7 @@ import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 public final class ViewRenderer {
 	private ViewRenderer() {
@@ -20,5 +21,12 @@ public final class ViewRenderer {
 		response.setStatus(statusCode);
 		request.setAttribute("error", message);
 		forward(request, response, viewPath);
+	}
+
+	public static void redirectWithError(HttpServletRequest request, HttpServletResponse response, String path,
+			String message) throws IOException {
+		HttpSession session = request.getSession();
+		session.setAttribute("error", message);
+		response.sendRedirect(request.getContextPath() + path);
 	}
 }

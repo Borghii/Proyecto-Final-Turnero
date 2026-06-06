@@ -127,10 +127,10 @@ public class TurnoServiceImpl implements TurnoService {
 			return horariosDisponibles;
 		}
 
-		agregarHorariosDelBloque(horariosDisponibles, turnosDelDia, servicio, fecha,
-				horario.getMananaDesde(), horario.getMananaHasta());
-		agregarHorariosDelBloque(horariosDisponibles, turnosDelDia, servicio, fecha,
-				horario.getTardeDesde(), horario.getTardeHasta());
+		horariosDisponibles.addAll(calcularHorariosDelBloque(turnosDelDia, servicio, fecha,
+				horario.getMananaDesde(), horario.getMananaHasta()));
+		horariosDisponibles.addAll(calcularHorariosDelBloque(turnosDelDia, servicio, fecha,
+				horario.getTardeDesde(), horario.getTardeHasta()));
 
 		return horariosDisponibles;
 	}
@@ -148,10 +148,12 @@ public class TurnoServiceImpl implements TurnoService {
 		return null;
 	}
 
-	private void agregarHorariosDelBloque(List<LocalTime> horariosDisponibles, List<Turno> turnosDelDia,
-			Servicio servicio, LocalDate fecha, LocalTime horaDesde, LocalTime horaHasta) {
+	private List<LocalTime> calcularHorariosDelBloque(List<Turno> turnosDelDia, Servicio servicio, LocalDate fecha,
+			LocalTime horaDesde, LocalTime horaHasta) {
+		List<LocalTime> horarios = new ArrayList<>();
+
 		if (horaDesde == null || horaHasta == null) {
-			return;
+			return horarios;
 		}
 
 		LocalTime horaActual = horaDesde;
@@ -159,11 +161,13 @@ public class TurnoServiceImpl implements TurnoService {
 			LocalTime horaFin = horaActual.plusMinutes(servicio.getDuracion());
 
 			if (esHorarioReservable(fecha, horaActual) && !estaOcupado(turnosDelDia, horaActual, horaFin)) {
-				horariosDisponibles.add(horaActual);
+				horarios.add(horaActual);
 			}
 
 			horaActual = horaActual.plusMinutes(SALTO_MINUTOS);
 		}
+
+		return horarios;
 	}
 
 	private void validarHorarioDisponible(int idNegocio, Servicio servicio, LocalDate fecha, LocalTime horaInicio) {

@@ -31,7 +31,12 @@ public class ConfirmarTurnoServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		try {
-			ConfirmarTurnoRequest confirmarTurnoRequest = buildRequest(request);
+			ConfirmarTurnoRequest confirmarTurnoRequest = new ConfirmarTurnoRequest(
+					request.getParameter("idNegocio"),
+					request.getParameter("idServicio"),
+					request.getParameter("fecha"),
+					request.getParameter("hora"));
+
 			ConfirmacionTurnoDTO confirmacion = turnoService.obtenerConfirmacionTurno(
 					confirmarTurnoRequest.getIdNegocio(),
 					confirmarTurnoRequest.getIdServicio(),
@@ -55,7 +60,12 @@ public class ConfirmarTurnoServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		try {
-			ConfirmarTurnoRequest confirmarTurnoRequest = buildRequest(request);
+			ConfirmarTurnoRequest confirmarTurnoRequest = new ConfirmarTurnoRequest(
+					request.getParameter("idNegocio"),
+					request.getParameter("idServicio"),
+					request.getParameter("fecha"),
+					request.getParameter("hora"));
+
 			HttpSession session = request.getSession(false);
 			int idUsuario = UserSession.getUserId(session);
 
@@ -76,14 +86,6 @@ public class ConfirmarTurnoServlet extends HttpServlet {
 		} catch (InternalSystemException e) {
 			redirectConErrorCalendario(request, response, e.getMessage());
 		}
-	}
-
-	private ConfirmarTurnoRequest buildRequest(HttpServletRequest request) {
-		return new ConfirmarTurnoRequest(
-				request.getParameter("idNegocio"),
-				request.getParameter("idServicio"),
-				request.getParameter("fecha"),
-				request.getParameter("hora"));
 	}
 
 	private void redirectConErrorCalendario(HttpServletRequest request, HttpServletResponse response, String message)

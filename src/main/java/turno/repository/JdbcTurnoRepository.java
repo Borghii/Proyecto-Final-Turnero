@@ -54,7 +54,7 @@ public class JdbcTurnoRepository implements TurnoRepository {
 			SET t.estado = ?
 			WHERE t.id_turno = ?
 			AND n.id_usuario = ?
-			AND t.estado <> ?
+			AND t.estado != ?
 			""";
 
 	private static final String SELECT_BY_CLIENTE = """
@@ -79,7 +79,7 @@ public class JdbcTurnoRepository implements TurnoRepository {
 			FROM turnos t
 			JOIN servicios s ON t.id_servicio = s.id_servicio
 			WHERE s.id_negocio = ?
-			AND t.estado <> ?
+			AND t.estado != ?
 			AND (
 				t.fecha > ?
 				OR (t.fecha = ? AND t.hora_inicio >= ?)

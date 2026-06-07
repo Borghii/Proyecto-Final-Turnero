@@ -9,7 +9,10 @@ import negocio.repository.HorarioRepository;
 import negocio.repository.NegocioRepository;
 import shared.exception.BusinessRuleException;
 import shared.exception.ResourceNotFoundException;
+import turno.entity.Turno;
+import turno.repository.TurnoRepository;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,10 +20,13 @@ import java.util.List;
 public class NegocioServiceImpl implements NegocioService {
 	private final NegocioRepository negocioRepository;
 	private final HorarioRepository horarioRepository;
+	private final TurnoRepository turnoRepository;
 
-	public NegocioServiceImpl(NegocioRepository negocioRepository, HorarioRepository horarioRepository) {
+	public NegocioServiceImpl(NegocioRepository negocioRepository, HorarioRepository horarioRepository,
+			TurnoRepository turnoRepository) {
 		this.negocioRepository = negocioRepository;
 		this.horarioRepository = horarioRepository;
+		this.turnoRepository = turnoRepository;
 	}
 
 	@Override
@@ -56,6 +62,8 @@ public class NegocioServiceImpl implements NegocioService {
 		for (ActualizarHorarioRequest horarioRequest : request.getHorarios()) {
 			horarios.add(crearHorario(horarioRequest));
 		}
+
+		validarTurnosProximosDentroDelNuevoHorario(negocio.getIdNegocio(), horarios);
 
 		negocioRepository.update(new Negocio(
 				negocio.getIdNegocio(),
@@ -100,6 +108,41 @@ public class NegocioServiceImpl implements NegocioService {
 				horarioRequest.getTardeDesde(),
 				horarioRequest.getTardeHasta(),
 				true);
+	}
+
+	private void validarTurnosProximosDentroDelNuevoHorario(int idNegocio, List<Horario> horarios) {
+		List<Turno> turnosProximos = turnoRepository.findActivosByNegocioFromDateTime(
+				idNegocio,
+				LocalDate.now(),
+				LocalTime.now());
+
+		for (Turno turno : turnosProximos) {
+			if (!turnoQuedaDentroDelNuevoHorario(turno, horarios)) {
+				throw new BusinessRuleException("No podes cambiar la franja horaria porque hay turnos proximos fuera del nuevo horario. Cancela esos turnos antes de modificar los horarios");
+			}
+		}
+	}
+
+	private boolean turnoQuedaDentroDelNuevoHorario(Turno turno, List<Horario> horarios) {
+		int diaDelTurno = turno.getFecha().getDayOfWeek().getValue();
+
+		for (Horario horario : horarios) {
+			if (horario.getDia() == diaDelTurno) {
+				return horario.isActivo()
+						&& (turnoQuedaDentroDelBloque(turno, horario.getMananaDesde(), horario.getMananaHasta())
+								|| turnoQuedaDentroDelBloque(turno, horario.getTardeDesde(), horario.getTardeHasta()));
+			}
+		}
+
+		return false;
+	}
+
+	private boolean turnoQuedaDentroDelBloque(Turno turno, LocalTime desde, LocalTime hasta) {
+		if (desde == null || hasta == null) {
+			return false;
+		}
+
+		return !turno.getHoraInicio().isBefore(desde) && !turno.getHoraFin().isAfter(hasta);
 	}
 
 	private void validarBloqueCompleto(LocalTime desde, LocalTime hasta, String bloque) {

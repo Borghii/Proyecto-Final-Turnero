@@ -1,11 +1,11 @@
-package turno.dto;
+package servicio.dto;
 
 import shared.exception.ValidationException;
 
-public class SeleccionarNegocioRequest {
+public class BuscarServiciosRequest {
 	private final int idNegocio;
 
-	public SeleccionarNegocioRequest(String idNegocio) {
+	public BuscarServiciosRequest(String idNegocio) {
 		this.idNegocio = parseIdNegocio(idNegocio);
 	}
 

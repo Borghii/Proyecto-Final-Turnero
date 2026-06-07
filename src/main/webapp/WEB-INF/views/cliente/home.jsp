@@ -59,7 +59,7 @@
                                 <h3><%= n.getNombre() %></h3>
                                 <p><b>Ciudad:</b> <%= n.getCiudad() %></p>
 
-                                <a class="accion-link" href="<%= request.getContextPath() %>/cliente/turnos/nuevo?idNegocio=<%= n.getIdNegocio() %>">
+                                <a class="accion-link" href="<%= request.getContextPath() %>/cliente/servicios?idNegocio=<%= n.getIdNegocio() %>">
                                     Ver servicios
                                 </a>
                             </div>

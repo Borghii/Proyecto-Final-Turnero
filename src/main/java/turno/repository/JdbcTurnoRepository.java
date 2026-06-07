@@ -54,7 +54,7 @@ public class JdbcTurnoRepository implements TurnoRepository {
 			SET t.estado = ?
 			WHERE t.id_turno = ?
 			AND n.id_usuario = ?
-			AND t.estado <> ?
+			AND t.estado != ?
 			""";
 
 	private static final String SELECT_BY_CLIENTE = """
@@ -72,6 +72,19 @@ public class JdbcTurnoRepository implements TurnoRepository {
 			FROM turnos t
 			JOIN servicios s ON t.id_servicio = s.id_servicio
 			WHERE s.id_negocio = ? AND t.fecha = ?
+			""";
+
+	private static final String SELECT_ACTIVOS_BY_NEGOCIO_FROM_DATE_TIME = """
+			SELECT t.id_turno, t.id_servicio, t.id_usuario, t.fecha, t.hora_inicio, t.hora_fin, t.estado
+			FROM turnos t
+			JOIN servicios s ON t.id_servicio = s.id_servicio
+			WHERE s.id_negocio = ?
+			AND t.estado != ?
+			AND (
+				t.fecha > ?
+				OR (t.fecha = ? AND t.hora_inicio >= ?)
+			)
+			ORDER BY t.fecha, t.hora_inicio
 			""";
 
 	private static final String INSERT_TURNO = """
@@ -173,6 +186,31 @@ public class JdbcTurnoRepository implements TurnoRepository {
 
 			statement.setInt(1, idNegocio);
 			statement.setDate(2, Date.valueOf(fecha));
+
+			try (ResultSet resultSet = statement.executeQuery()) {
+				while (resultSet.next()) {
+					turnos.add(mapTurno(resultSet));
+				}
+			}
+		} catch (SQLException e) {
+			throw new InternalSystemException();
+		}
+
+		return turnos;
+	}
+
+	@Override
+	public List<Turno> findActivosByNegocioFromDateTime(int idNegocio, LocalDate fromDate, LocalTime fromTime) {
+		List<Turno> turnos = new ArrayList<>();
+
+		try (Connection connection = conexionDB.getConnection();
+				PreparedStatement statement = connection.prepareStatement(SELECT_ACTIVOS_BY_NEGOCIO_FROM_DATE_TIME)) {
+
+			statement.setInt(1, idNegocio);
+			statement.setString(2, EstadoTurnoEnum.CANCELADO.name());
+			statement.setDate(3, Date.valueOf(fromDate));
+			statement.setDate(4, Date.valueOf(fromDate));
+			statement.setTime(5, Time.valueOf(fromTime));
 
 			try (ResultSet resultSet = statement.executeQuery()) {
 				while (resultSet.next()) {

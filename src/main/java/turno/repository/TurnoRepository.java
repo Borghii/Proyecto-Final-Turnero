@@ -21,5 +21,7 @@ public interface TurnoRepository {
 
 	List<Turno> findByNegocioAndFecha(int idNegocio, LocalDate fecha);
 
+	List<Turno> findActivosByNegocioFromDateTime(int idNegocio, LocalDate fromDate, LocalTime fromTime);
+
 	void save(Turno turno);
 }

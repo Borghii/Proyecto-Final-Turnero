@@ -29,6 +29,7 @@ public class MisTurnosServlet extends HttpServlet {
 			throws ServletException, IOException {
 		HttpSession session = request.getSession(false);
 		int idUsuario = UserSession.getUserId(session);
+		ViewRenderer.cargarError(request);
 
 		try {
 			List<TurnoClienteDTO> misTurnos = turnoService.obtenerTurnosPorCliente(idUsuario);

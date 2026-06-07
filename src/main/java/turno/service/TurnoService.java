@@ -12,6 +12,8 @@ public interface TurnoService {
 	List<TurnoConServicio> findUpcomingByBusinessOwner(int idUsuario);
 
 	void cancelarTurno(int idTurno, int idUsuario);
+
+	void cancelarTurnoPorCliente(int idTurno, int idUsuario);
 	
 	List<LocalTime> obtenerHorariosDisponibles(int idNegocio, int idServicio, LocalDate fecha);
 

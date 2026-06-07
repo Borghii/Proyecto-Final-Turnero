@@ -40,7 +40,8 @@ public class JdbcTurnoRepository implements TurnoRepository {
 			""";
 
 	private static final String SELECT_FOR_CANCEL = """
-			SELECT t.id_turno, n.id_usuario AS id_usuario_duenio_negocio, t.estado
+			SELECT t.id_turno, t.id_usuario AS id_usuario_cliente,
+				n.id_usuario AS id_usuario_duenio_negocio, t.estado
 			FROM turnos t
 			JOIN servicios s ON s.id_servicio = t.id_servicio
 			JOIN negocios n ON n.id_negocio = s.id_negocio
@@ -56,6 +57,13 @@ public class JdbcTurnoRepository implements TurnoRepository {
 			AND n.id_usuario = ?
 			""";
 
+	private static final String UPDATE_CANCEL_BY_CLIENT = """
+			UPDATE turnos
+			SET estado = ?
+			WHERE id_turno = ?
+			AND id_usuario = ?
+			""";
+
 	private static final String SELECT_BY_CLIENTE = """
 			SELECT t.id_turno, t.fecha, t.hora_inicio, t.hora_fin, t.estado,
 				s.nombre AS nombre_servicio, s.precio, n.nombre AS nombre_negocio
@@ -64,6 +72,14 @@ public class JdbcTurnoRepository implements TurnoRepository {
 			JOIN negocios n ON s.id_negocio = n.id_negocio
 			WHERE t.id_usuario = ?
 			ORDER BY t.fecha DESC, t.hora_inicio DESC
+			""";
+
+	private static final String SELECT_ACTIVE_BY_CLIENTE_AND_FECHA = """
+			SELECT id_turno, id_servicio, id_usuario, fecha, hora_inicio, hora_fin, estado
+			FROM turnos
+			WHERE id_usuario = ?
+			AND fecha = ?
+			AND estado != ?
 			""";
 
 	private static final String SELECT_BY_NEGOCIO_AND_FECHA = """
@@ -162,6 +178,21 @@ public class JdbcTurnoRepository implements TurnoRepository {
 	}
 
 	@Override
+	public void cancelarPorCliente(int idTurno, int idUsuario) {
+		try (Connection connection = conexionDB.getConnection();
+				PreparedStatement statement = connection.prepareStatement(UPDATE_CANCEL_BY_CLIENT)) {
+
+			statement.setString(1, EstadoTurnoEnum.CANCELADO.name());
+			statement.setInt(2, idTurno);
+			statement.setInt(3, idUsuario);
+
+			statement.executeUpdate();
+		} catch (SQLException e) {
+			throw new InternalSystemException();
+		}
+	}
+
+	@Override
 	public List<TurnoClienteDTO> findByClienteId(int idUsuario) {
 		List<TurnoClienteDTO> turnos = new ArrayList<>();
 
@@ -173,6 +204,29 @@ public class JdbcTurnoRepository implements TurnoRepository {
 			try (ResultSet resultSet = statement.executeQuery()) {
 				while (resultSet.next()) {
 					turnos.add(mapTurnoCliente(resultSet));
+				}
+			}
+		} catch (SQLException e) {
+			throw new InternalSystemException();
+		}
+
+		return turnos;
+	}
+
+	@Override
+	public List<Turno> findActivosByClienteAndFecha(int idUsuario, LocalDate fecha) {
+		List<Turno> turnos = new ArrayList<>();
+
+		try (Connection connection = conexionDB.getConnection();
+				PreparedStatement statement = connection.prepareStatement(SELECT_ACTIVE_BY_CLIENTE_AND_FECHA)) {
+
+			statement.setInt(1, idUsuario);
+			statement.setDate(2, Date.valueOf(fecha));
+			statement.setString(3, EstadoTurnoEnum.CANCELADO.name());
+
+			try (ResultSet resultSet = statement.executeQuery()) {
+				while (resultSet.next()) {
+					turnos.add(mapTurno(resultSet));
 				}
 			}
 		} catch (SQLException e) {
@@ -281,6 +335,7 @@ public class JdbcTurnoRepository implements TurnoRepository {
 		try {
 			return new TurnoParaCancelacion(
 					resultSet.getInt("id_turno"),
+					resultSet.getInt("id_usuario_cliente"),
 					resultSet.getInt("id_usuario_duenio_negocio"),
 					EstadoTurnoEnum.valueOf(resultSet.getString("estado")));
 		} catch (SQLException e) {

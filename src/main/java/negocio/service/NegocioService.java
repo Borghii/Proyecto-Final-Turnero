@@ -12,4 +12,6 @@ public interface NegocioService {
 
     NegocioConHorarios obtenerNegocioConHorarios(int userId);
     void actualizarNegocio(int userId, ActualizarNegocioRequest request);
+    
+    Negocio obtenerNegocioPorUsuario(int idUsuario);
 }

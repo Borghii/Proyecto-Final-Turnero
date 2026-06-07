@@ -39,7 +39,7 @@ public class SignUpClient extends HttpServlet {
 
 			authService.signUpClient(signUpClientRequest);
 
-			response.sendRedirect(request.getContextPath() + "/login");
+			response.sendRedirect(request.getContextPath() + "/login?registro=cliente");
 		} catch (ValidationException e) {
 			ViewRenderer.forwardWithError(request, response, HttpServletResponse.SC_BAD_REQUEST,
 					ViewPaths.SIGNUP_CLIENT, e.getMessage());

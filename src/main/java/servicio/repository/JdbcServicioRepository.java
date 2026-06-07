@@ -28,6 +28,22 @@ public class JdbcServicioRepository implements ServicioRepository {
 			WHERE id_servicio = ?
 			""";
 
+	private static final String INSERT_SERVICIO = """
+			INSERT INTO servicios (nombre, precio, duracion, id_negocio)
+			VALUES (?, ?, ?, ?)
+			""";
+
+	private static final String UPDATE_SERVICIO = """
+			UPDATE servicios
+			SET nombre = ?, precio = ?, duracion = ?
+			WHERE id_servicio = ? AND id_negocio = ?
+			""";
+
+	private static final String DELETE_SERVICIO = """
+			DELETE FROM servicios
+			WHERE id_servicio = ?
+			""";
+
 	public JdbcServicioRepository(ConexionDB conexionDB) {
 		this.conexionDB = conexionDB;
 	}
@@ -38,7 +54,6 @@ public class JdbcServicioRepository implements ServicioRepository {
 
 		try (Connection connection = conexionDB.getConnection();
 				PreparedStatement statement = connection.prepareStatement(SELECT_BY_NEGOCIO)) {
-
 			statement.setInt(1, idNegocio);
 
 			try (ResultSet resultSet = statement.executeQuery()) {
@@ -57,7 +72,6 @@ public class JdbcServicioRepository implements ServicioRepository {
 	public Optional<Servicio> findById(int idServicio) {
 		try (Connection connection = conexionDB.getConnection();
 				PreparedStatement statement = connection.prepareStatement(SELECT_BY_ID)) {
-
 			statement.setInt(1, idServicio);
 
 			try (ResultSet resultSet = statement.executeQuery()) {
@@ -67,6 +81,46 @@ public class JdbcServicioRepository implements ServicioRepository {
 
 				return Optional.of(mapServicio(resultSet));
 			}
+		} catch (SQLException e) {
+			throw new InternalSystemException();
+		}
+	}
+
+	@Override
+	public void save(Servicio servicio) {
+		try (Connection connection = conexionDB.getConnection();
+				PreparedStatement statement = connection.prepareStatement(INSERT_SERVICIO)) {
+			statement.setString(1, servicio.getNombre());
+			statement.setDouble(2, servicio.getPrecio());
+			statement.setInt(3, servicio.getDuracion());
+			statement.setInt(4, servicio.getIdNegocio());
+			statement.executeUpdate();
+		} catch (SQLException e) {
+			throw new InternalSystemException();
+		}
+	}
+
+	@Override
+	public void update(Servicio servicio) {
+		try (Connection connection = conexionDB.getConnection();
+				PreparedStatement statement = connection.prepareStatement(UPDATE_SERVICIO)) {
+			statement.setString(1, servicio.getNombre());
+			statement.setDouble(2, servicio.getPrecio());
+			statement.setInt(3, servicio.getDuracion());
+			statement.setInt(4, servicio.getIdServicio());
+			statement.setInt(5, servicio.getIdNegocio());
+			statement.executeUpdate();
+		} catch (SQLException e) {
+			throw new InternalSystemException();
+		}
+	}
+
+	@Override
+	public void delete(int idServicio) {
+		try (Connection connection = conexionDB.getConnection();
+				PreparedStatement statement = connection.prepareStatement(DELETE_SERVICIO)) {
+			statement.setInt(1, idServicio);
+			statement.executeUpdate();
 		} catch (SQLException e) {
 			throw new InternalSystemException();
 		}

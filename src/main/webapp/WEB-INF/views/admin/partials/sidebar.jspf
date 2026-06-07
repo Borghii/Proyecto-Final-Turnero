@@ -6,7 +6,7 @@
 		<td><a href="<%= request.getContextPath() %>/admin/negocio">Mi negocio</a></td>
 	</tr>
 	<tr>
-		<td><a href="#">Mis servicios</a></td>
+		<td><a href="<%= request.getContextPath() %>/admin/servicios">Mis servicios</a></td>
 	</tr>
 	<tr>
 		<td><a href="#">Turnos</a></td>

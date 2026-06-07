@@ -17,7 +17,11 @@ public interface TurnoRepository {
 
 	void cancelarPorDuenioDeNegocio(int idTurno, int idUsuario);
 
+	void cancelarPorCliente(int idTurno, int idUsuario);
+
 	List<TurnoClienteDTO> findByClienteId(int idUsuario);
+
+	List<Turno> findActivosByClienteAndFecha(int idUsuario, LocalDate fecha);
 
 	List<Turno> findByNegocioAndFecha(int idNegocio, LocalDate fecha);
 

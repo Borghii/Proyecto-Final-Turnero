@@ -25,6 +25,8 @@ public class ClienteHomeServlet extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
+		ViewRenderer.cargarError(request);
+
 		try {
 			List<Negocio> listaNegocios = negocioService.obtenerTodosLosNegocios();
 			
@@ -37,4 +39,5 @@ public class ClienteHomeServlet extends HttpServlet {
 					ViewPaths.CLIENTE_HOME, e.getMessage());
 		}
 	}
+
 }

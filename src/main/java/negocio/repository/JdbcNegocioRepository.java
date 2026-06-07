@@ -33,6 +33,12 @@ public class JdbcNegocioRepository implements NegocioRepository {
 			WHERE id_usuario = ?
 			""";
 
+	private static final String FIND_BY_ID = """
+			SELECT id_negocio, ciudad, nombre, id_usuario
+			FROM negocios
+			WHERE id_negocio = ?
+			""";
+
 	private static final String UPDATE_NEGOCIO = """
 			UPDATE negocios
 			SET ciudad = ?, nombre = ?
@@ -103,6 +109,25 @@ public class JdbcNegocioRepository implements NegocioRepository {
 			throw new InternalSystemException();
 		}
 		return negocios;
+	}
+
+	@Override
+	public Optional<Negocio> findById(int idNegocio) {
+		try (Connection connection = conexionDB.getConnection();
+				PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_ID)) {
+
+			preparedStatement.setInt(1, idNegocio);
+
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				if (resultSet.next()) {
+					return Optional.of(mapNegocio(resultSet));
+				}
+			}
+
+			return Optional.empty();
+		} catch (SQLException e) {
+			throw new InternalSystemException();
+		}
 	}
 
 	@Override

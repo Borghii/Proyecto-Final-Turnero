@@ -14,6 +14,16 @@ public class Turno {
 	private LocalTime horaFin;
 	private EstadoTurnoEnum estado;
 
+	public Turno(int idServicio, int idUsuario, LocalDate fecha,
+			LocalTime horaInicio, LocalTime horaFin, EstadoTurnoEnum estado) {
+		this.idServicio = idServicio;
+		this.idUsuario = idUsuario;
+		this.fecha = fecha;
+		this.horaInicio = horaInicio;
+		this.horaFin = horaFin;
+		this.estado = estado;
+	}
+
 	public Turno(int idTurno, int idServicio, int idUsuario, LocalDate fecha,
 			LocalTime horaInicio, LocalTime horaFin, EstadoTurnoEnum estado) {
 		this.idTurno = idTurno;

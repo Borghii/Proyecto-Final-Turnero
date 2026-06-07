@@ -60,7 +60,6 @@ public class TurnoServiceImpl implements TurnoService {
 
 	@Override
 	public List<LocalTime> obtenerHorariosDisponibles(int idNegocio, int idServicio, LocalDate fecha) {
-		validarFechaReservable(fecha);
 		Servicio servicio = obtenerServicioDelNegocio(idNegocio, idServicio);
 		return calcularHorariosDisponibles(idNegocio, servicio, fecha);
 	}
@@ -68,9 +67,6 @@ public class TurnoServiceImpl implements TurnoService {
 	@Override
 	public ConfirmacionTurnoDTO obtenerConfirmacionTurno(int idNegocio, int idServicio, LocalDate fecha,
 			LocalTime horaInicio) {
-		validarFechaReservable(fecha);
-		validarHora(horaInicio);
-
 		Servicio servicio = obtenerServicioDelNegocio(idNegocio, idServicio);
 		validarHorarioDisponible(idNegocio, servicio, fecha, horaInicio);
 
@@ -87,14 +83,10 @@ public class TurnoServiceImpl implements TurnoService {
 
 	@Override
 	public void reservarTurno(int idNegocio, int idServicio, int idUsuario, LocalDate fecha, LocalTime horaInicio) {
-		validarFechaReservable(fecha);
-		validarHora(horaInicio);
-
 		Servicio servicio = obtenerServicioDelNegocio(idNegocio, idServicio);
 		validarHorarioDisponible(idNegocio, servicio, fecha, horaInicio);
 
 		Turno turno = new Turno(
-				0,
 				servicio.getIdServicio(),
 				idUsuario,
 				fecha,
@@ -134,10 +126,10 @@ public class TurnoServiceImpl implements TurnoService {
 			return horariosDisponibles;
 		}
 
-		agregarHorariosDelBloque(horariosDisponibles, turnosDelDia, servicio, fecha,
-				horario.getMananaDesde(), horario.getMananaHasta());
-		agregarHorariosDelBloque(horariosDisponibles, turnosDelDia, servicio, fecha,
-				horario.getTardeDesde(), horario.getTardeHasta());
+		horariosDisponibles.addAll(calcularHorariosDelBloque(turnosDelDia, servicio, fecha,
+				horario.getMananaDesde(), horario.getMananaHasta()));
+		horariosDisponibles.addAll(calcularHorariosDelBloque(turnosDelDia, servicio, fecha,
+				horario.getTardeDesde(), horario.getTardeHasta()));
 
 		return horariosDisponibles;
 	}
@@ -155,20 +147,26 @@ public class TurnoServiceImpl implements TurnoService {
 		return null;
 	}
 
-	private void agregarHorariosDelBloque(List<LocalTime> horariosDisponibles, List<Turno> turnosDelDia,
-			Servicio servicio, LocalDate fecha, LocalTime horaDesde, LocalTime horaHasta) {
+	private List<LocalTime> calcularHorariosDelBloque(List<Turno> turnosDelDia, Servicio servicio, LocalDate fecha,
+			LocalTime horaDesde, LocalTime horaHasta) {
+		List<LocalTime> horarios = new ArrayList<>();
+
 		if (horaDesde == null || horaHasta == null) {
-			return;
+			return horarios;
 		}
 
 		LocalTime horaActual = horaDesde;
 		while (!horaActual.plusMinutes(servicio.getDuracion()).isAfter(horaHasta)) {
-			if (esHorarioReservable(fecha, horaActual) && !estaOcupado(turnosDelDia, horaActual)) {
-				horariosDisponibles.add(horaActual);
+			LocalTime horaFin = horaActual.plusMinutes(servicio.getDuracion());
+
+			if (esHorarioReservable(fecha, horaActual) && !estaOcupado(turnosDelDia, horaActual, horaFin)) {
+				horarios.add(horaActual);
 			}
 
 			horaActual = horaActual.plusMinutes(SALTO_MINUTOS);
 		}
+
+		return horarios;
 	}
 
 	private void validarHorarioDisponible(int idNegocio, Servicio servicio, LocalDate fecha, LocalTime horaInicio) {
@@ -177,9 +175,13 @@ public class TurnoServiceImpl implements TurnoService {
 		}
 	}
 
-	private boolean estaOcupado(List<Turno> turnosDelDia, LocalTime horaInicio) {
+	private boolean estaOcupado(List<Turno> turnosDelDia, LocalTime horaInicio, LocalTime horaFin) {
 		for (Turno turno : turnosDelDia) {
-			if (turno.getEstado() == EstadoTurnoEnum.CONFIRMADO && turno.getHoraInicio().equals(horaInicio)) {
+			if (turno.getEstado() == EstadoTurnoEnum.CANCELADO) {
+				continue;
+			}
+
+			if (horaInicio.isBefore(turno.getHoraFin()) && horaFin.isAfter(turno.getHoraInicio())) {
 				return true;
 			}
 		}
@@ -189,17 +191,5 @@ public class TurnoServiceImpl implements TurnoService {
 
 	private boolean esHorarioReservable(LocalDate fecha, LocalTime horaInicio) {
 		return !fecha.equals(LocalDate.now()) || !horaInicio.isBefore(LocalTime.now());
-	}
-
-	private void validarFechaReservable(LocalDate fecha) {
-		if (fecha == null || fecha.isBefore(LocalDate.now())) {
-			throw new BusinessRuleException("La fecha indicada no puede ser anterior a hoy");
-		}
-	}
-
-	private void validarHora(LocalTime horaInicio) {
-		if (horaInicio == null) {
-			throw new BusinessRuleException("La hora indicada no es valida");
-		}
 	}
 }

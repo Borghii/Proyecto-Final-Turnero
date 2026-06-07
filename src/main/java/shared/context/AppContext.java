@@ -35,7 +35,8 @@ public final class AppContext {
 	private static final TurnoRepository turnoRepository = new JdbcTurnoRepository(conexionDB);
 
 
-	private static final NegocioService negocioService = new NegocioServiceImpl(negocioRepository, horarioRepository);
+	private static final NegocioService negocioService =
+			new NegocioServiceImpl(negocioRepository, horarioRepository, turnoRepository);
 	private static final UsuarioService usuarioService = new UsuarioServiceImpl(usuarioRepository);
 	private static final AuthService authService = new AuthServiceImpl(usuarioService, negocioService);
 	private static final ServicioService servicioService = new ServicioServiceImpl(servicioRepository, negocioRepository);

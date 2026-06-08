@@ -7,6 +7,13 @@ public class Servicio {
 	private int duracion;
 	private int idNegocio;
 
+	public Servicio(String nombre, double precio, int duracion, int idNegocio) {
+		this.nombre = nombre;
+		this.precio = precio;
+		this.duracion = duracion;
+		this.idNegocio = idNegocio;
+	}
+
 	public Servicio(int idServicio, String nombre, double precio, int duracion, int idNegocio) {
 		this.idServicio = idServicio;
 		this.nombre = nombre;

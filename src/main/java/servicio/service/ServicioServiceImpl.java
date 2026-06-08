@@ -46,7 +46,6 @@ public class ServicioServiceImpl implements ServicioService {
 		validarMultiploDe30(request.getDuracion());
 
 		Servicio servicio = new Servicio(
-				0,
 				request.getNombre(),
 				request.getPrecio(),
 				request.getDuracion(),

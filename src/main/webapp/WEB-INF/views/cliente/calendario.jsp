@@ -7,22 +7,6 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Elegir Fecha y Hora</title>
-	<style>
-		.horario-link {
-			display: inline-block;
-			background-color: #4CAF50;
-			color: white;
-			padding: 10px 20px;
-			margin: 5px;
-			border-radius: 5px;
-			text-decoration: none;
-			font-size: 16px;
-		}
-
-		.horario-link:hover {
-			background-color: #45a049;
-		}
-	</style>
 </head>
 <body>
 	<table width="100%">
@@ -33,7 +17,6 @@
 
 			<td valign="top">
 				<h1>Paso 2: Elegi la fecha y hora</h1>
-				<hr style="width: 50%; text-align: left; margin-left: 0;">
 
 				<%
 					String error = (String) request.getAttribute("error");
@@ -60,8 +43,7 @@
 					<button type="submit">Buscar horarios</button>
 				</form>
 
-				<br><br>
-				<h3>Horarios disponibles para el <%= fechaSeleccionada %>:</h3>
+				<h2>Horarios disponibles para el <%= fechaSeleccionada %></h2>
 
 				<%
 					if (horariosLibres == null || horariosLibres.isEmpty()) {
@@ -69,13 +51,28 @@
 					<p style="color: red;">No hay turnos disponibles para esta fecha. Proba buscando otro dia.</p>
 				<%
 					} else {
-						for (LocalTime hora : horariosLibres) {
 				%>
-							<a class="horario-link" href="<%= request.getContextPath() %>/cliente/turnos/confirmar?idNegocio=<%= idNegocio %>&idServicio=<%= idServicio %>&fecha=<%= fechaSeleccionada %>&hora=<%= hora %>">
-								<%= hora %>
-							</a>
+					<table border="1">
+						<tr>
+							<th>Hora</th>
+							<th>Accion</th>
+						</tr>
+						<%
+							for (LocalTime hora : horariosLibres) {
+						%>
+							<tr>
+								<td><%= hora %></td>
+								<td>
+									<a href="<%= request.getContextPath() %>/cliente/turnos/confirmar?idNegocio=<%= idNegocio %>&idServicio=<%= idServicio %>&fecha=<%= fechaSeleccionada %>&hora=<%= hora %>">
+										Seleccionar
+									</a>
+								</td>
+							</tr>
+						<%
+							}
+						%>
+					</table>
 				<%
-						}
 					}
 				%>
 			</td>

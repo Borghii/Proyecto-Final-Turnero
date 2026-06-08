@@ -15,13 +15,15 @@ public interface TurnoRepository {
 
 	Optional<TurnoParaCancelacion> findParaCancelacionById(int idTurno);
 
-	boolean cancelarPorDuenioDeNegocio(int idTurno, int idUsuario);
-	
+	void cancelarPorDuenioDeNegocio(int idTurno, int idUsuario);
+
 	List<TurnoClienteDTO> findByClienteId(int idUsuario);
 
 	List<Turno> findByNegocioAndFecha(int idNegocio, LocalDate fecha);
 
 	List<Turno> findActivosByNegocioFromDateTime(int idNegocio, LocalDate fromDate, LocalTime fromTime);
+
+	boolean existsByServicioId(int idServicio);
 
 	void save(Turno turno);
 }

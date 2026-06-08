@@ -39,7 +39,8 @@ public final class AppContext {
 			new NegocioServiceImpl(negocioRepository, horarioRepository, turnoRepository);
 	private static final UsuarioService usuarioService = new UsuarioServiceImpl(usuarioRepository);
 	private static final AuthService authService = new AuthServiceImpl(usuarioService, negocioService);
-	private static final ServicioService servicioService = new ServicioServiceImpl(servicioRepository, negocioRepository);
+	private static final ServicioService servicioService =
+			new ServicioServiceImpl(servicioRepository, negocioRepository, turnoRepository);
 	private static final TurnoService turnoService =
 			new TurnoServiceImpl(turnoRepository, servicioRepository, horarioRepository);
 

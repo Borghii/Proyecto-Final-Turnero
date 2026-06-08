@@ -17,13 +17,12 @@ public class JdbcNegocioRepository implements NegocioRepository {
 	private final ConexionDB conexionDB;
 
 	private static final String INSERT_NEGOCIO = """
-			INSERT INTO negocios (ciudad, nombre, id_usuario) 
+			INSERT INTO negocios (ciudad, nombre, id_usuario)
 			VALUES (?, ?, ?)
 			""";
 
-
 	private static final String FIND_ALL_NEGOCIOS = """
-			SELECT id_negocio, ciudad, nombre, id_usuario 
+			SELECT id_negocio, ciudad, nombre, id_usuario
 			FROM negocios
 			""";
 
@@ -45,17 +44,15 @@ public class JdbcNegocioRepository implements NegocioRepository {
 			WHERE id_negocio = ? AND id_usuario = ?
 			""";
 
-
 	public JdbcNegocioRepository(ConexionDB conexionDB) {
 		this.conexionDB = conexionDB;
 	}
 
 	@Override
 	public Negocio save(Negocio negocio) {
-
-		try(Connection connection = conexionDB.getConnection();
-		    PreparedStatement statement = connection.prepareStatement(INSERT_NEGOCIO, Statement.RETURN_GENERATED_KEYS))
-		{
+		try (Connection connection = conexionDB.getConnection();
+				PreparedStatement statement =
+						connection.prepareStatement(INSERT_NEGOCIO, Statement.RETURN_GENERATED_KEYS)) {
 			statement.setString(1, negocio.getCiudad());
 			statement.setString(2, negocio.getNombre());
 			statement.setInt(3, negocio.getIdUsuario());
@@ -75,7 +72,6 @@ public class JdbcNegocioRepository implements NegocioRepository {
 		} catch (SQLException e) {
 			throw new InternalSystemException();
 		}
-
 	}
 
 	@Override
@@ -99,8 +95,8 @@ public class JdbcNegocioRepository implements NegocioRepository {
 		List<Negocio> negocios = new ArrayList<>();
 
 		try (Connection connection = conexionDB.getConnection();
-			 PreparedStatement statement = connection.prepareStatement(FIND_ALL_NEGOCIOS);
-			 ResultSet resultSet = statement.executeQuery()) {
+				PreparedStatement statement = connection.prepareStatement(FIND_ALL_NEGOCIOS);
+				ResultSet resultSet = statement.executeQuery()) {
 
 			while (resultSet.next()) {
 				negocios.add(mapNegocio(resultSet));
@@ -114,11 +110,11 @@ public class JdbcNegocioRepository implements NegocioRepository {
 	@Override
 	public Optional<Negocio> findById(int idNegocio) {
 		try (Connection connection = conexionDB.getConnection();
-				PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_ID)) {
+				PreparedStatement statement = connection.prepareStatement(FIND_BY_ID)) {
 
-			preparedStatement.setInt(1, idNegocio);
+			statement.setInt(1, idNegocio);
 
-			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+			try (ResultSet resultSet = statement.executeQuery()) {
 				if (resultSet.next()) {
 					return Optional.of(mapNegocio(resultSet));
 				}
@@ -132,13 +128,12 @@ public class JdbcNegocioRepository implements NegocioRepository {
 
 	@Override
 	public Optional<Negocio> findByUserId(int userId) {
-
 		try (Connection connection = conexionDB.getConnection();
-		PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_USER_ID) ){
+				PreparedStatement statement = connection.prepareStatement(FIND_BY_USER_ID)) {
 
-			preparedStatement.setInt(1, userId);
+			statement.setInt(1, userId);
 
-			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+			try (ResultSet resultSet = statement.executeQuery()) {
 				if (resultSet.next()) {
 					return Optional.of(mapNegocio(resultSet));
 				}
@@ -148,7 +143,7 @@ public class JdbcNegocioRepository implements NegocioRepository {
 		} catch (SQLException e) {
 			throw new InternalSystemException();
 		}
-    }
+	}
 
 	private Negocio mapNegocio(ResultSet resultSet) {
 		try {
@@ -156,8 +151,7 @@ public class JdbcNegocioRepository implements NegocioRepository {
 					resultSet.getInt("id_negocio"),
 					resultSet.getString("ciudad"),
 					resultSet.getString("nombre"),
-					resultSet.getInt("id_usuario")
-			);
+					resultSet.getInt("id_usuario"));
 		} catch (SQLException e) {
 			throw new InternalSystemException();
 		}

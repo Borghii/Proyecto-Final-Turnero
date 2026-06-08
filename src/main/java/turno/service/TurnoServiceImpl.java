@@ -52,10 +52,7 @@ public class TurnoServiceImpl implements TurnoService {
 			throw new BusinessRuleException("El turno ya esta cancelado");
 		}
 
-		boolean cancelado = turnoRepository.cancelarPorDuenioDeNegocio(idTurno, idUsuario);
-		if (!cancelado) {
-			throw new BusinessRuleException("No se pudo cancelar el turno. Intenta nuevamente.");
-		}
+		turnoRepository.cancelarPorDuenioDeNegocio(idTurno, idUsuario);
 	}
 
 	@Override

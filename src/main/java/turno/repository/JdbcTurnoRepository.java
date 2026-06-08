@@ -54,7 +54,6 @@ public class JdbcTurnoRepository implements TurnoRepository {
 			SET t.estado = ?
 			WHERE t.id_turno = ?
 			AND n.id_usuario = ?
-			AND t.estado != ?
 			""";
 
 	private static final String SELECT_BY_CLIENTE = """
@@ -90,6 +89,13 @@ public class JdbcTurnoRepository implements TurnoRepository {
 	private static final String INSERT_TURNO = """
 			INSERT INTO turnos (id_servicio, id_usuario, fecha, hora_inicio, hora_fin, estado)
 			VALUES (?, ?, ?, ?, ?, ?)
+			""";
+
+	private static final String EXISTS_BY_SERVICIO_ID = """
+			SELECT 1
+			FROM turnos
+			WHERE id_servicio = ?
+			LIMIT 1
 			""";
 
 	public JdbcTurnoRepository(ConexionDB conexionDB) {
@@ -141,16 +147,15 @@ public class JdbcTurnoRepository implements TurnoRepository {
 	}
 
 	@Override
-	public boolean cancelarPorDuenioDeNegocio(int idTurno, int idUsuario) {
+	public void cancelarPorDuenioDeNegocio(int idTurno, int idUsuario) {
 		try (Connection connection = conexionDB.getConnection();
 				PreparedStatement statement = connection.prepareStatement(UPDATE_CANCEL_BY_BUSINESS_OWNER)) {
 
 			statement.setString(1, EstadoTurnoEnum.CANCELADO.name());
 			statement.setInt(2, idTurno);
 			statement.setInt(3, idUsuario);
-			statement.setString(4, EstadoTurnoEnum.CANCELADO.name());
 
-			return statement.executeUpdate() > 0;
+			statement.executeUpdate();
 		} catch (SQLException e) {
 			throw new InternalSystemException();
 		}
@@ -235,6 +240,20 @@ public class JdbcTurnoRepository implements TurnoRepository {
 			statement.setTime(5, Time.valueOf(turno.getHoraFin()));
 			statement.setString(6, turno.getEstado().name());
 			statement.executeUpdate();
+		} catch (SQLException e) {
+			throw new InternalSystemException();
+		}
+	}
+
+	@Override
+	public boolean existsByServicioId(int idServicio) {
+		try (Connection connection = conexionDB.getConnection();
+				PreparedStatement statement = connection.prepareStatement(EXISTS_BY_SERVICIO_ID)) {
+			statement.setInt(1, idServicio);
+
+			try (ResultSet resultSet = statement.executeQuery()) {
+				return resultSet.next();
+			}
 		} catch (SQLException e) {
 			throw new InternalSystemException();
 		}

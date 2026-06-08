@@ -48,7 +48,7 @@ public class SignUpBusiness extends HttpServlet {
 
 			authService.signUpBusiness(signUpBussinesRequest);
 
-			response.sendRedirect(request.getContextPath() + "/login");
+			response.sendRedirect(request.getContextPath() + "/login?registro=negocio");
 		} catch (ValidationException e) {
 			ViewRenderer.forwardWithError(request, response, HttpServletResponse.SC_BAD_REQUEST,
 					ViewPaths.SIGNUP_BUSINESS, e.getMessage());

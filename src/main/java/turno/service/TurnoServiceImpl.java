@@ -42,26 +42,32 @@ public class TurnoServiceImpl implements TurnoService {
 
 	@Override
 	public void cancelarTurno(int idTurno, int idUsuario) {
-		TurnoParaCancelacion turno = obtenerTurnoParaCancelacion(idTurno);
+		TurnoParaCancelacion turno = turnoRepository.findParaCancelacionById(idTurno)
+				.orElseThrow(() -> new ResourceNotFoundException("El turno no existe"));
 
 		if (turno.getIdUsuarioDuenioNegocio() != idUsuario) {
 			throw new AuthorizationException("No tenes permiso para cancelar este turno");
 		}
 
-		validarTurnoNoCancelado(turno);
+		if (turno.getEstado() == EstadoTurnoEnum.CANCELADO) {
+			throw new BusinessRuleException("El turno ya esta cancelado");
+		}
 
 		turnoRepository.cancelarPorDuenioDeNegocio(idTurno, idUsuario);
 	}
 
 	@Override
 	public void cancelarTurnoPorCliente(int idTurno, int idUsuario) {
-		TurnoParaCancelacion turno = obtenerTurnoParaCancelacion(idTurno);
+		TurnoParaCancelacion turno = turnoRepository.findParaCancelacionById(idTurno)
+				.orElseThrow(() -> new ResourceNotFoundException("El turno no existe"));
 
 		if (turno.getIdUsuarioCliente() != idUsuario) {
 			throw new AuthorizationException("No tenes permiso para cancelar este turno");
 		}
 
-		validarTurnoNoCancelado(turno);
+		if (turno.getEstado() == EstadoTurnoEnum.CANCELADO) {
+			throw new BusinessRuleException("El turno ya esta cancelado");
+		}
 
 		turnoRepository.cancelarPorCliente(idTurno, idUsuario);
 	}
@@ -191,17 +197,6 @@ public class TurnoServiceImpl implements TurnoService {
 
 		if (estaOcupado(turnosCliente, horaInicio, horaFin)) {
 			throw new BusinessRuleException("Ya tenes un turno reservado que se superpone con ese horario");
-		}
-	}
-
-	private TurnoParaCancelacion obtenerTurnoParaCancelacion(int idTurno) {
-		return turnoRepository.findParaCancelacionById(idTurno)
-				.orElseThrow(() -> new ResourceNotFoundException("El turno no existe"));
-	}
-
-	private void validarTurnoNoCancelado(TurnoParaCancelacion turno) {
-		if (turno.getEstado() == EstadoTurnoEnum.CANCELADO) {
-			throw new BusinessRuleException("El turno ya esta cancelado");
 		}
 	}
 

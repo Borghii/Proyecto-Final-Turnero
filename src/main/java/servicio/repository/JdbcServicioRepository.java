@@ -101,7 +101,7 @@ public class JdbcServicioRepository implements ServicioRepository {
 	}
 
 	@Override
-	public boolean update(Servicio servicio) {
+	public void update(Servicio servicio) {
 		try (Connection connection = conexionDB.getConnection();
 				PreparedStatement statement = connection.prepareStatement(UPDATE_SERVICIO)) {
 			statement.setString(1, servicio.getNombre());
@@ -109,19 +109,19 @@ public class JdbcServicioRepository implements ServicioRepository {
 			statement.setInt(3, servicio.getDuracion());
 			statement.setInt(4, servicio.getIdServicio());
 			statement.setInt(5, servicio.getIdNegocio());
-			return statement.executeUpdate() > 0;
+			statement.executeUpdate();
 		} catch (SQLException e) {
 			throw new InternalSystemException();
 		}
 	}
 
 	@Override
-	public boolean delete(int idServicio, int idNegocio) {
+	public void delete(int idServicio, int idNegocio) {
 		try (Connection connection = conexionDB.getConnection();
 				PreparedStatement statement = connection.prepareStatement(DELETE_SERVICIO)) {
 			statement.setInt(1, idServicio);
 			statement.setInt(2, idNegocio);
-			return statement.executeUpdate() > 0;
+			statement.executeUpdate();
 		} catch (SQLException e) {
 			throw new InternalSystemException();
 		}

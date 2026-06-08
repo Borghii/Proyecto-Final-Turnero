@@ -73,9 +73,7 @@ public class ServicioServiceImpl implements ServicioService {
 				request.getDuracion(),
 				negocio.getIdNegocio());
 
-		if (!servicioRepository.update(servicio)) {
-			throw new ResourceNotFoundException("El servicio no existe");
-		}
+		servicioRepository.update(servicio);
 	}
 
 	@Override
@@ -94,9 +92,7 @@ public class ServicioServiceImpl implements ServicioService {
 					"No podes eliminar un servicio que tiene turnos asociados. Cancela o conserva esos turnos antes de eliminarlo.");
 		}
 
-		if (!servicioRepository.delete(request.getIdServicio(), negocio.getIdNegocio())) {
-			throw new ResourceNotFoundException("El servicio no existe");
-		}
+		servicioRepository.delete(request.getIdServicio(), negocio.getIdNegocio());
 	}
 
 	private void validarMultiploDe30(int duracion) {

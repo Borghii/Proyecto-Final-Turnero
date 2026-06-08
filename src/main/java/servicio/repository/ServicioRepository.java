@@ -12,7 +12,7 @@ public interface ServicioRepository {
 
 	void save(Servicio servicio);
 
-	boolean update(Servicio servicio);
+	void update(Servicio servicio);
 
-	boolean delete(int idServicio, int idNegocio);
+	void delete(int idServicio, int idNegocio);
 }

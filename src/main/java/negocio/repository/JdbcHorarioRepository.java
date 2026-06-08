@@ -104,20 +104,23 @@ public class JdbcHorarioRepository implements HorarioRepository {
 		}
 	}
 
-	private Horario mapHorario(ResultSet resultSet) throws SQLException {
-		Time mananaDesde = resultSet.getTime("manana_desde");
-		Time mananaHasta = resultSet.getTime("manana_hasta");
-		Time tardeDesde = resultSet.getTime("tarde_desde");
-		Time tardeHasta = resultSet.getTime("tarde_hasta");
+	private Horario mapHorario(ResultSet resultSet) {
+		try {
+			Time mananaDesde = resultSet.getTime("manana_desde");
+			Time mananaHasta = resultSet.getTime("manana_hasta");
+			Time tardeDesde = resultSet.getTime("tarde_desde");
+			Time tardeHasta = resultSet.getTime("tarde_hasta");
 
-		return new Horario(
-				resultSet.getInt("dia"),
-				mananaDesde != null ? mananaDesde.toLocalTime() : null,
-				mananaHasta != null ? mananaHasta.toLocalTime() : null,
-				tardeDesde != null ? tardeDesde.toLocalTime() : null,
-				tardeHasta != null ? tardeHasta.toLocalTime() : null,
-				resultSet.getBoolean("activo")
-		);
+			return new Horario(
+					resultSet.getInt("dia"),
+					mananaDesde != null ? mananaDesde.toLocalTime() : null,
+					mananaHasta != null ? mananaHasta.toLocalTime() : null,
+					tardeDesde != null ? tardeDesde.toLocalTime() : null,
+					tardeHasta != null ? tardeHasta.toLocalTime() : null,
+					resultSet.getBoolean("activo"));
+		} catch (SQLException e) {
+			throw new InternalSystemException();
+		}
 	}
 
 	private void setNullableTime(PreparedStatement statement, int parameterIndex, LocalTime time) throws SQLException {

@@ -54,7 +54,6 @@ public class JdbcTurnoRepository implements TurnoRepository {
 			SET t.estado = ?
 			WHERE t.id_turno = ?
 			AND n.id_usuario = ?
-			AND t.estado != ?
 			""";
 
 	private static final String SELECT_BY_CLIENTE = """
@@ -148,16 +147,15 @@ public class JdbcTurnoRepository implements TurnoRepository {
 	}
 
 	@Override
-	public boolean cancelarPorDuenioDeNegocio(int idTurno, int idUsuario) {
+	public void cancelarPorDuenioDeNegocio(int idTurno, int idUsuario) {
 		try (Connection connection = conexionDB.getConnection();
 				PreparedStatement statement = connection.prepareStatement(UPDATE_CANCEL_BY_BUSINESS_OWNER)) {
 
 			statement.setString(1, EstadoTurnoEnum.CANCELADO.name());
 			statement.setInt(2, idTurno);
 			statement.setInt(3, idUsuario);
-			statement.setString(4, EstadoTurnoEnum.CANCELADO.name());
 
-			return statement.executeUpdate() > 0;
+			statement.executeUpdate();
 		} catch (SQLException e) {
 			throw new InternalSystemException();
 		}

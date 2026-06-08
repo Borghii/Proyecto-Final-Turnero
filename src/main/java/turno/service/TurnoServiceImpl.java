@@ -13,6 +13,7 @@ import shared.enums.EstadoTurnoEnum;
 import shared.exception.AuthorizationException;
 import shared.exception.BusinessRuleException;
 import shared.exception.ResourceNotFoundException;
+import turno.dto.ActividadMesDTO;
 import turno.dto.ConfirmacionTurnoDTO;
 import turno.dto.TurnoClienteDTO;
 import turno.dto.TurnoConServicio;
@@ -220,5 +221,11 @@ public class TurnoServiceImpl implements TurnoService {
 
 	private boolean esHorarioReservable(LocalDate fecha, LocalTime horaInicio) {
 		return !fecha.equals(LocalDate.now()) || !horaInicio.isBefore(LocalTime.now());
+	}
+	
+	@Override
+	public ActividadMesDTO obtenerActividadDelMesPorDuenio(int idUsuario) {
+		return turnoRepository.findActividadMesByBusinessOwner(idUsuario)
+				.orElseThrow(() -> new ResourceNotFoundException("Este usuario no tiene un negocio registrado."));
 	}
 }

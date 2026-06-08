@@ -15,6 +15,7 @@ import java.util.Optional;
 import shared.db.ConexionDB;
 import shared.enums.EstadoTurnoEnum;
 import shared.exception.InternalSystemException;
+import turno.dto.ActividadMesDTO;
 import turno.dto.TurnoClienteDTO;
 import turno.dto.TurnoConServicio;
 import turno.dto.TurnoParaCancelacion;
@@ -100,6 +101,35 @@ public class JdbcTurnoRepository implements TurnoRepository {
 				OR (t.fecha = ? AND t.hora_inicio >= ?)
 			)
 			ORDER BY t.fecha, t.hora_inicio
+			""";
+
+	private static final String SELECT_ACTIVIDAD_MES_BY_BUSINESS_OWNER = """
+			SELECT
+				COUNT(t.id_turno) AS total_turnos,
+				SUM(CASE WHEN t.estado = ? THEN 1 ELSE 0 END) AS turnos_cancelados,
+				SUM(CASE
+					WHEN t.estado != ?
+					AND (
+						t.fecha < CURRENT_DATE()
+						OR (t.fecha = CURRENT_DATE() AND t.hora_fin <= CURRENT_TIME())
+					)
+					THEN 1 ELSE 0
+				END) AS turnos_realizados,
+				SUM(CASE
+					WHEN t.estado != ?
+					AND (
+						t.fecha < CURRENT_DATE()
+						OR (t.fecha = CURRENT_DATE() AND t.hora_fin <= CURRENT_TIME())
+					)
+					THEN s.precio ELSE 0
+				END) AS ingresos
+			FROM negocios n
+			LEFT JOIN servicios s ON s.id_negocio = n.id_negocio
+			LEFT JOIN turnos t ON t.id_servicio = s.id_servicio
+				AND MONTH(t.fecha) = MONTH(CURRENT_DATE())
+				AND YEAR(t.fecha) = YEAR(CURRENT_DATE())
+			WHERE n.id_usuario = ?
+			GROUP BY n.id_negocio
 			""";
 
 	private static final String INSERT_TURNO = """
@@ -284,6 +314,28 @@ public class JdbcTurnoRepository implements TurnoRepository {
 	}
 
 	@Override
+	public Optional<ActividadMesDTO> findActividadMesByBusinessOwner(int idUsuario) {
+		try (Connection connection = conexionDB.getConnection();
+				PreparedStatement statement = connection.prepareStatement(SELECT_ACTIVIDAD_MES_BY_BUSINESS_OWNER)) {
+
+			statement.setString(1, EstadoTurnoEnum.CANCELADO.name());
+			statement.setString(2, EstadoTurnoEnum.CANCELADO.name());
+			statement.setString(3, EstadoTurnoEnum.CANCELADO.name());
+			statement.setInt(4, idUsuario);
+
+			try (ResultSet resultSet = statement.executeQuery()) {
+				if (!resultSet.next()) {
+					return Optional.empty();
+				}
+
+				return Optional.of(mapActividadMes(resultSet));
+			}
+		} catch (SQLException e) {
+			throw new InternalSystemException();
+		}
+	}
+
+	@Override
 	public void save(Turno turno) {
 		try (Connection connection = conexionDB.getConnection();
 				PreparedStatement statement = connection.prepareStatement(INSERT_TURNO)) {
@@ -369,6 +421,18 @@ public class JdbcTurnoRepository implements TurnoRepository {
 					resultSet.getTime("hora_inicio").toLocalTime(),
 					resultSet.getTime("hora_fin").toLocalTime(),
 					EstadoTurnoEnum.valueOf(resultSet.getString("estado")));
+		} catch (SQLException e) {
+			throw new InternalSystemException();
+		}
+	}
+
+	private ActividadMesDTO mapActividadMes(ResultSet resultSet) {
+		try {
+			return new ActividadMesDTO(
+					resultSet.getInt("total_turnos"),
+					resultSet.getInt("turnos_realizados"),
+					resultSet.getInt("turnos_cancelados"),
+					resultSet.getDouble("ingresos"));
 		} catch (SQLException e) {
 			throw new InternalSystemException();
 		}

@@ -5,6 +5,7 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
+import turno.dto.ActividadMesDTO;
 import turno.dto.TurnoClienteDTO;
 import turno.dto.TurnoConServicio;
 import turno.dto.TurnoParaCancelacion;
@@ -30,4 +31,6 @@ public interface TurnoRepository {
 	boolean existsByServicioId(int idServicio);
 
 	void save(Turno turno);
+
+	Optional<ActividadMesDTO> findActividadMesByBusinessOwner(int idUsuario);
 }

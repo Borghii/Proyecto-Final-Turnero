@@ -5,6 +5,7 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
+import turno.dto.ActividadMesDTO;
 import turno.dto.TurnoClienteDTO;
 import turno.dto.TurnoConServicio;
 import turno.dto.TurnoParaCancelacion;
@@ -17,7 +18,11 @@ public interface TurnoRepository {
 
 	void cancelarPorDuenioDeNegocio(int idTurno, int idUsuario);
 
+	void cancelarPorCliente(int idTurno, int idUsuario);
+
 	List<TurnoClienteDTO> findByClienteId(int idUsuario);
+
+	List<Turno> findActivosByClienteAndFecha(int idUsuario, LocalDate fecha);
 
 	List<Turno> findByNegocioAndFecha(int idNegocio, LocalDate fecha);
 
@@ -26,4 +31,6 @@ public interface TurnoRepository {
 	boolean existsByServicioId(int idServicio);
 
 	void save(Turno turno);
+
+	Optional<ActividadMesDTO> findActividadMesByBusinessOwner(int idUsuario);
 }

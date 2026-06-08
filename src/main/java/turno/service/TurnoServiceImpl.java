@@ -13,6 +13,7 @@ import shared.enums.EstadoTurnoEnum;
 import shared.exception.AuthorizationException;
 import shared.exception.BusinessRuleException;
 import shared.exception.ResourceNotFoundException;
+import turno.dto.ActividadMesDTO;
 import turno.dto.ConfirmacionTurnoDTO;
 import turno.dto.TurnoClienteDTO;
 import turno.dto.TurnoConServicio;
@@ -56,6 +57,22 @@ public class TurnoServiceImpl implements TurnoService {
 	}
 
 	@Override
+	public void cancelarTurnoPorCliente(int idTurno, int idUsuario) {
+		TurnoParaCancelacion turno = turnoRepository.findParaCancelacionById(idTurno)
+				.orElseThrow(() -> new ResourceNotFoundException("El turno no existe"));
+
+		if (turno.getIdUsuarioCliente() != idUsuario) {
+			throw new AuthorizationException("No tenes permiso para cancelar este turno");
+		}
+
+		if (turno.getEstado() == EstadoTurnoEnum.CANCELADO) {
+			throw new BusinessRuleException("El turno ya esta cancelado");
+		}
+
+		turnoRepository.cancelarPorCliente(idTurno, idUsuario);
+	}
+
+	@Override
 	public List<LocalTime> obtenerHorariosDisponibles(int idNegocio, int idServicio, LocalDate fecha) {
 		Servicio servicio = obtenerServicioDelNegocio(idNegocio, idServicio);
 		return calcularHorariosDisponibles(idNegocio, servicio, fecha);
@@ -82,13 +99,15 @@ public class TurnoServiceImpl implements TurnoService {
 	public void reservarTurno(int idNegocio, int idServicio, int idUsuario, LocalDate fecha, LocalTime horaInicio) {
 		Servicio servicio = obtenerServicioDelNegocio(idNegocio, idServicio);
 		validarHorarioDisponible(idNegocio, servicio, fecha, horaInicio);
+		LocalTime horaFin = horaInicio.plusMinutes(servicio.getDuracion());
+		validarClienteSinTurnoSuperpuesto(idUsuario, fecha, horaInicio, horaFin);
 
 		Turno turno = new Turno(
 				servicio.getIdServicio(),
 				idUsuario,
 				fecha,
 				horaInicio,
-				horaInicio.plusMinutes(servicio.getDuracion()),
+				horaFin,
 				EstadoTurnoEnum.CONFIRMADO);
 
 		turnoRepository.save(turno);
@@ -172,6 +191,15 @@ public class TurnoServiceImpl implements TurnoService {
 		}
 	}
 
+	private void validarClienteSinTurnoSuperpuesto(int idUsuario, LocalDate fecha, LocalTime horaInicio,
+			LocalTime horaFin) {
+		List<Turno> turnosCliente = turnoRepository.findActivosByClienteAndFecha(idUsuario, fecha);
+
+		if (estaOcupado(turnosCliente, horaInicio, horaFin)) {
+			throw new BusinessRuleException("Ya tenes un turno reservado que se superpone con ese horario");
+		}
+	}
+
 	private boolean estaOcupado(List<Turno> turnosDelDia, LocalTime horaInicio, LocalTime horaFin) {
 		for (Turno turno : turnosDelDia) {
 			if (turno.getEstado() == EstadoTurnoEnum.CANCELADO) {
@@ -188,5 +216,11 @@ public class TurnoServiceImpl implements TurnoService {
 
 	private boolean esHorarioReservable(LocalDate fecha, LocalTime horaInicio) {
 		return !fecha.equals(LocalDate.now()) || !horaInicio.isBefore(LocalTime.now());
+	}
+
+	@Override
+	public ActividadMesDTO obtenerActividadDelMesPorDuenio(int idUsuario) {
+		return turnoRepository.findActividadMesByBusinessOwner(idUsuario)
+				.orElseThrow(() -> new ResourceNotFoundException("Este usuario no tiene un negocio registrado."));
 	}
 }

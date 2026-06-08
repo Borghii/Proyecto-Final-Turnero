@@ -9,7 +9,7 @@
 		<td><a href="<%= request.getContextPath() %>/admin/servicios">Mis servicios</a></td>
 	</tr>
 	<tr>
-		<td><a href="#">Turnos</a></td>
+		<td><a href="<%= request.getContextPath() %>/admin/actividad">Actividad</a></td>
 	</tr>
 	<tr>
 		<td><a href="<%= request.getContextPath() %>/logout">Cerrar sesion</a></td>

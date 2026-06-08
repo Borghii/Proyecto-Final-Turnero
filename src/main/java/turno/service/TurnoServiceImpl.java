@@ -222,7 +222,7 @@ public class TurnoServiceImpl implements TurnoService {
 	private boolean esHorarioReservable(LocalDate fecha, LocalTime horaInicio) {
 		return !fecha.equals(LocalDate.now()) || !horaInicio.isBefore(LocalTime.now());
 	}
-	
+
 	@Override
 	public ActividadMesDTO obtenerActividadDelMesPorDuenio(int idUsuario) {
 		return turnoRepository.findActividadMesByBusinessOwner(idUsuario)

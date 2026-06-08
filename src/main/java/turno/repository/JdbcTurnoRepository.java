@@ -92,6 +92,13 @@ public class JdbcTurnoRepository implements TurnoRepository {
 			VALUES (?, ?, ?, ?, ?, ?)
 			""";
 
+	private static final String EXISTS_BY_SERVICIO_ID = """
+			SELECT 1
+			FROM turnos
+			WHERE id_servicio = ?
+			LIMIT 1
+			""";
+
 	public JdbcTurnoRepository(ConexionDB conexionDB) {
 		this.conexionDB = conexionDB;
 	}
@@ -235,6 +242,20 @@ public class JdbcTurnoRepository implements TurnoRepository {
 			statement.setTime(5, Time.valueOf(turno.getHoraFin()));
 			statement.setString(6, turno.getEstado().name());
 			statement.executeUpdate();
+		} catch (SQLException e) {
+			throw new InternalSystemException();
+		}
+	}
+
+	@Override
+	public boolean existsByServicioId(int idServicio) {
+		try (Connection connection = conexionDB.getConnection();
+				PreparedStatement statement = connection.prepareStatement(EXISTS_BY_SERVICIO_ID)) {
+			statement.setInt(1, idServicio);
+
+			try (ResultSet resultSet = statement.executeQuery()) {
+				return resultSet.next();
+			}
 		} catch (SQLException e) {
 			throw new InternalSystemException();
 		}

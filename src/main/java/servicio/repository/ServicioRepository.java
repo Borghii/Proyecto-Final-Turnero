@@ -9,10 +9,10 @@ public interface ServicioRepository {
 	List<Servicio> findByIdNegocio(int idNegocio);
 
 	Optional<Servicio> findById(int idServicio);
-	
+
 	void save(Servicio servicio);
-	
-	void update(Servicio servicio);
-	
-	void delete(int idServicio);
+
+	boolean update(Servicio servicio);
+
+	boolean delete(int idServicio, int idNegocio);
 }

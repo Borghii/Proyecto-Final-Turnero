@@ -19,6 +19,7 @@ public class JdbcServicioRepository implements ServicioRepository {
 			SELECT id_servicio, nombre, precio, duracion, id_negocio
 			FROM servicios
 			WHERE id_negocio = ?
+			AND activo = TRUE
 			ORDER BY nombre
 			""";
 
@@ -26,6 +27,7 @@ public class JdbcServicioRepository implements ServicioRepository {
 			SELECT id_servicio, nombre, precio, duracion, id_negocio
 			FROM servicios
 			WHERE id_servicio = ?
+			AND activo = TRUE
 			""";
 
 	private static final String INSERT_SERVICIO = """
@@ -36,12 +38,13 @@ public class JdbcServicioRepository implements ServicioRepository {
 	private static final String UPDATE_SERVICIO = """
 			UPDATE servicios
 			SET nombre = ?, precio = ?, duracion = ?
-			WHERE id_servicio = ? AND id_negocio = ?
+			WHERE id_servicio = ? AND id_negocio = ? AND activo = TRUE
 			""";
 
 	private static final String DELETE_SERVICIO = """
-			DELETE FROM servicios
-			WHERE id_servicio = ? AND id_negocio = ?
+			UPDATE servicios
+			SET activo = FALSE
+			WHERE id_servicio = ? AND id_negocio = ? AND activo = TRUE
 			""";
 
 	public JdbcServicioRepository(ConexionDB conexionDB) {

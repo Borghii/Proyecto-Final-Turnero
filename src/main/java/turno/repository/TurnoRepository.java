@@ -30,6 +30,8 @@ public interface TurnoRepository {
 
 	boolean existsByServicioId(int idServicio);
 
+	boolean existsActivosByServicioFromDateTime(int idServicio, LocalDate fromDate, LocalTime fromTime);
+
 	void save(Turno turno);
 
 	Optional<ActividadMesDTO> findActividadMesByBusinessOwner(int idUsuario);

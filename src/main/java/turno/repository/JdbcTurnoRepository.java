@@ -144,6 +144,18 @@ public class JdbcTurnoRepository implements TurnoRepository {
 			LIMIT 1
 			""";
 
+	private static final String EXISTS_ACTIVOS_BY_SERVICIO_FROM_DATE_TIME = """
+			SELECT 1
+			FROM turnos
+			WHERE id_servicio = ?
+			AND estado != 'CANCELADO'
+			AND (
+				fecha > ?
+				OR (fecha = ? AND hora_inicio >= ?)
+			)
+			LIMIT 1
+			""";
+
 	public JdbcTurnoRepository(ConexionDB conexionDB) {
 		this.conexionDB = conexionDB;
 	}
@@ -349,6 +361,23 @@ public class JdbcTurnoRepository implements TurnoRepository {
 		try (Connection connection = conexionDB.getConnection();
 				PreparedStatement statement = connection.prepareStatement(EXISTS_BY_SERVICIO_ID)) {
 			statement.setInt(1, idServicio);
+
+			try (ResultSet resultSet = statement.executeQuery()) {
+				return resultSet.next();
+			}
+		} catch (SQLException e) {
+			throw new InternalSystemException();
+		}
+	}
+
+	@Override
+	public boolean existsActivosByServicioFromDateTime(int idServicio, LocalDate fromDate, LocalTime fromTime) {
+		try (Connection connection = conexionDB.getConnection();
+				PreparedStatement statement = connection.prepareStatement(EXISTS_ACTIVOS_BY_SERVICIO_FROM_DATE_TIME)) {
+			statement.setInt(1, idServicio);
+			statement.setDate(2, Date.valueOf(fromDate));
+			statement.setDate(3, Date.valueOf(fromDate));
+			statement.setTime(4, Time.valueOf(fromTime));
 
 			try (ResultSet resultSet = statement.executeQuery()) {
 				return resultSet.next();

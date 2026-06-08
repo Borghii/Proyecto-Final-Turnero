@@ -1,5 +1,7 @@
 package servicio.service;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 import negocio.entity.Negocio;
@@ -65,6 +67,14 @@ public class ServicioServiceImpl implements ServicioService {
 			throw new AuthorizationException("No tenes permiso para editar este servicio.");
 		}
 
+		if (turnoRepository.existsActivosByServicioFromDateTime(
+				request.getIdServicio(),
+				LocalDate.now(),
+				LocalTime.now())) {
+			throw new BusinessRuleException(
+					"No podes modificar un servicio que tiene turnos proximos confirmados. Cancela esos turnos antes de modificarlo.");
+		}
+
 		Servicio servicio = new Servicio(
 				request.getIdServicio(),
 				request.getNombre(),
@@ -86,9 +96,12 @@ public class ServicioServiceImpl implements ServicioService {
 			throw new AuthorizationException("No tenes permiso para eliminar este servicio.");
 		}
 
-		if (turnoRepository.existsByServicioId(request.getIdServicio())) {
+		if (turnoRepository.existsActivosByServicioFromDateTime(
+				request.getIdServicio(),
+				LocalDate.now(),
+				LocalTime.now())) {
 			throw new BusinessRuleException(
-					"No podes eliminar un servicio que tiene turnos asociados. Cancela o conserva esos turnos antes de eliminarlo.");
+					"No podes eliminar un servicio que tiene turnos proximos confirmados. Cancela esos turnos antes de eliminarlo.");
 		}
 
 		servicioRepository.delete(request.getIdServicio(), negocio.getIdNegocio());

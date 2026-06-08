@@ -1,21 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>
 <%@ page import="servicio.entity.Servicio" %>
-<%!
-	private String escapeHtml(Object value) {
-		if (value == null) {
-			return "";
-		}
-
-		return value.toString()
-				.replace("&", "&amp;")
-				.replace("<", "&lt;")
-				.replace(">", "&gt;")
-				.replace("\"", "&quot;")
-				.replace("'", "&#39;");
-	}
-
-%>
 <!doctype html>
 <html lang="es">
 <head>
@@ -92,7 +77,7 @@
 								<td>
 									<form id="<%= editarFormId %>" method="post" action="<%= request.getContextPath() %>/admin/servicios/actualizar"></form>
 									<input form="<%= editarFormId %>" type="hidden" name="idServicio" value="<%= servicio.getIdServicio() %>">
-									<input form="<%= editarFormId %>" type="text" name="nombre" value="<%= escapeHtml(servicio.getNombre()) %>" required>
+									<input form="<%= editarFormId %>" type="text" name="nombre" value="<%= servicio.getNombre() %>" required>
 								</td>
 								<td>
 									<input form="<%= editarFormId %>" type="number" name="precio" step="0.01" min="0" value="<%= servicio.getPrecio() %>" required>

@@ -29,7 +29,6 @@ public class ActualizarServicioServlet extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		request.setCharacterEncoding("UTF-8");
 		HttpSession session = request.getSession(false);
 		int userId = UserSession.getUserId(session);
 

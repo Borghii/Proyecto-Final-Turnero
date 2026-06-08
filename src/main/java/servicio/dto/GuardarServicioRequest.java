@@ -48,7 +48,7 @@ public class GuardarServicioRequest {
 
 		try {
 			double precio = Double.parseDouble(value.trim());
-			if (!Double.isFinite(precio) || precio < 0 || precio > MAX_PRECIO) {
+			if (precio < 0 || precio > MAX_PRECIO) {
 				throw new ValidationException("El precio del servicio no es valido");
 			}
 

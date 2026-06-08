@@ -1,6 +1,10 @@
 package usuario.repository;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Optional;
 
 import shared.db.ConexionDB;
@@ -24,11 +28,10 @@ public class JdbcUsuarioRepository implements UsuarioRepository {
 			LIMIT 1
 			""";
 
-	private static final String INSERT_CLIENT = """
+	private static final String INSERT_USUARIO = """
 			INSERT INTO usuarios (mail, pass, nombre, id_rol)
 			VALUES (?, ?, ?, ?)
 			""";
-
 
 	private final ConexionDB conexionDB;
 
@@ -73,15 +76,14 @@ public class JdbcUsuarioRepository implements UsuarioRepository {
 	@Override
 	public Usuario save(Usuario usuario) {
 		try (Connection connection = conexionDB.getConnection();
-		     PreparedStatement statement = connection.prepareStatement(
-					 INSERT_CLIENT,
-					 Statement.RETURN_GENERATED_KEYS)) {
+				PreparedStatement statement = connection.prepareStatement(
+						INSERT_USUARIO,
+						Statement.RETURN_GENERATED_KEYS)) {
 
 			statement.setString(1, usuario.getMail());
 			statement.setString(2, usuario.getPass());
 			statement.setString(3, usuario.getNombre());
 			statement.setInt(4, usuario.getRole().getIdRol());
-
 
 			statement.executeUpdate();
 
@@ -100,8 +102,7 @@ public class JdbcUsuarioRepository implements UsuarioRepository {
 		} catch (SQLException e) {
 			throw new InternalSystemException();
 		}
-    }
-
+	}
 
 	private Usuario mapUsuario(ResultSet resultSet) {
 		try {

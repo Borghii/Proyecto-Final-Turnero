@@ -168,4 +168,10 @@ public class NegocioServiceImpl implements NegocioService {
 
 		return horarios;
 	}
+
+	@Override
+	public Negocio obtenerNegocioPorUsuario(int idUsuario) {
+		return negocioRepository.findByUserId(idUsuario)
+				.orElseThrow(() -> new ResourceNotFoundException("Este usuario no tiene un negocio registrado."));
+	}
 }

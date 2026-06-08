@@ -10,6 +10,19 @@
 		<h1>Iniciar sesion</h1>
 
 		<%
+			String registro = request.getParameter("registro");
+			if ("cliente".equals(registro)) {
+		%>
+			<p style="color: green;"><b>Registro exitoso. Ya podes iniciar sesion como cliente.</b></p>
+		<%
+			} else if ("negocio".equals(registro)) {
+		%>
+			<p style="color: green;"><b>Registro exitoso. Ya podes iniciar sesion como administrador.</b></p>
+		<%
+			}
+		%>
+
+		<%
 			String error = (String) request.getAttribute("error");
 			if (error != null) {
 		%>

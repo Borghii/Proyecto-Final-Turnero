@@ -13,11 +13,11 @@
 			String registro = request.getParameter("registro");
 			if ("cliente".equals(registro)) {
 		%>
-			<script>alert("Registro exitoso. Ya podes iniciar sesion como cliente.");</script>
+			<p style="color: green;"><b>Registro exitoso. Ya podes iniciar sesion como cliente.</b></p>
 		<%
 			} else if ("negocio".equals(registro)) {
 		%>
-			<script>alert("Registro exitoso. Ya podes iniciar sesion como administrador.");</script>
+			<p style="color: green;"><b>Registro exitoso. Ya podes iniciar sesion como administrador.</b></p>
 		<%
 			}
 		%>

@@ -41,7 +41,7 @@ public class JdbcServicioRepository implements ServicioRepository {
 
 	private static final String DELETE_SERVICIO = """
 			DELETE FROM servicios
-			WHERE id_servicio = ?
+			WHERE id_servicio = ? AND id_negocio = ?
 			""";
 
 	public JdbcServicioRepository(ConexionDB conexionDB) {
@@ -101,7 +101,7 @@ public class JdbcServicioRepository implements ServicioRepository {
 	}
 
 	@Override
-	public void update(Servicio servicio) {
+	public boolean update(Servicio servicio) {
 		try (Connection connection = conexionDB.getConnection();
 				PreparedStatement statement = connection.prepareStatement(UPDATE_SERVICIO)) {
 			statement.setString(1, servicio.getNombre());
@@ -109,18 +109,19 @@ public class JdbcServicioRepository implements ServicioRepository {
 			statement.setInt(3, servicio.getDuracion());
 			statement.setInt(4, servicio.getIdServicio());
 			statement.setInt(5, servicio.getIdNegocio());
-			statement.executeUpdate();
+			return statement.executeUpdate() > 0;
 		} catch (SQLException e) {
 			throw new InternalSystemException();
 		}
 	}
 
 	@Override
-	public void delete(int idServicio) {
+	public boolean delete(int idServicio, int idNegocio) {
 		try (Connection connection = conexionDB.getConnection();
 				PreparedStatement statement = connection.prepareStatement(DELETE_SERVICIO)) {
 			statement.setInt(1, idServicio);
-			statement.executeUpdate();
+			statement.setInt(2, idNegocio);
+			return statement.executeUpdate() > 0;
 		} catch (SQLException e) {
 			throw new InternalSystemException();
 		}

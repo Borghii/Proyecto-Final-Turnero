@@ -23,5 +23,7 @@ public interface TurnoRepository {
 
 	List<Turno> findActivosByNegocioFromDateTime(int idNegocio, LocalDate fromDate, LocalTime fromTime);
 
+	boolean existsByServicioId(int idServicio);
+
 	void save(Turno turno);
 }

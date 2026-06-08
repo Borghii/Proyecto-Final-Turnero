@@ -53,14 +53,14 @@ public class JdbcTurnoRepository implements TurnoRepository {
 			UPDATE turnos t
 			JOIN servicios s ON s.id_servicio = t.id_servicio
 			JOIN negocios n ON n.id_negocio = s.id_negocio
-			SET t.estado = ?
+			SET t.estado = 'CANCELADO'
 			WHERE t.id_turno = ?
 			AND n.id_usuario = ?
 			""";
 
 	private static final String UPDATE_CANCEL_BY_CLIENT = """
 			UPDATE turnos
-			SET estado = ?
+			SET estado = 'CANCELADO'
 			WHERE id_turno = ?
 			AND id_usuario = ?
 			""";
@@ -80,7 +80,7 @@ public class JdbcTurnoRepository implements TurnoRepository {
 			FROM turnos
 			WHERE id_usuario = ?
 			AND fecha = ?
-			AND estado != ?
+			AND estado != 'CANCELADO'
 			""";
 
 	private static final String SELECT_BY_NEGOCIO_AND_FECHA = """
@@ -95,7 +95,7 @@ public class JdbcTurnoRepository implements TurnoRepository {
 			FROM turnos t
 			JOIN servicios s ON t.id_servicio = s.id_servicio
 			WHERE s.id_negocio = ?
-			AND t.estado != ?
+			AND t.estado != 'CANCELADO'
 			AND (
 				t.fecha > ?
 				OR (t.fecha = ? AND t.hora_inicio >= ?)
@@ -106,9 +106,9 @@ public class JdbcTurnoRepository implements TurnoRepository {
 	private static final String SELECT_ACTIVIDAD_MES_BY_BUSINESS_OWNER = """
 			SELECT
 				COUNT(t.id_turno) AS total_turnos,
-				SUM(CASE WHEN t.estado = ? THEN 1 ELSE 0 END) AS turnos_cancelados,
+				SUM(CASE WHEN t.estado = 'CANCELADO' THEN 1 ELSE 0 END) AS turnos_cancelados,
 				SUM(CASE
-					WHEN t.estado != ?
+					WHEN t.estado != 'CANCELADO'
 					AND (
 						t.fecha < CURRENT_DATE()
 						OR (t.fecha = CURRENT_DATE() AND t.hora_fin <= CURRENT_TIME())
@@ -116,7 +116,7 @@ public class JdbcTurnoRepository implements TurnoRepository {
 					THEN 1 ELSE 0
 				END) AS turnos_realizados,
 				SUM(CASE
-					WHEN t.estado != ?
+					WHEN t.estado != 'CANCELADO'
 					AND (
 						t.fecha < CURRENT_DATE()
 						OR (t.fecha = CURRENT_DATE() AND t.hora_fin <= CURRENT_TIME())
@@ -197,9 +197,8 @@ public class JdbcTurnoRepository implements TurnoRepository {
 		try (Connection connection = conexionDB.getConnection();
 				PreparedStatement statement = connection.prepareStatement(UPDATE_CANCEL_BY_BUSINESS_OWNER)) {
 
-			statement.setString(1, EstadoTurnoEnum.CANCELADO.name());
-			statement.setInt(2, idTurno);
-			statement.setInt(3, idUsuario);
+			statement.setInt(1, idTurno);
+			statement.setInt(2, idUsuario);
 
 			statement.executeUpdate();
 		} catch (SQLException e) {
@@ -212,9 +211,8 @@ public class JdbcTurnoRepository implements TurnoRepository {
 		try (Connection connection = conexionDB.getConnection();
 				PreparedStatement statement = connection.prepareStatement(UPDATE_CANCEL_BY_CLIENT)) {
 
-			statement.setString(1, EstadoTurnoEnum.CANCELADO.name());
-			statement.setInt(2, idTurno);
-			statement.setInt(3, idUsuario);
+			statement.setInt(1, idTurno);
+			statement.setInt(2, idUsuario);
 
 			statement.executeUpdate();
 		} catch (SQLException e) {
@@ -252,7 +250,6 @@ public class JdbcTurnoRepository implements TurnoRepository {
 
 			statement.setInt(1, idUsuario);
 			statement.setDate(2, Date.valueOf(fecha));
-			statement.setString(3, EstadoTurnoEnum.CANCELADO.name());
 
 			try (ResultSet resultSet = statement.executeQuery()) {
 				while (resultSet.next()) {
@@ -296,10 +293,9 @@ public class JdbcTurnoRepository implements TurnoRepository {
 				PreparedStatement statement = connection.prepareStatement(SELECT_ACTIVOS_BY_NEGOCIO_FROM_DATE_TIME)) {
 
 			statement.setInt(1, idNegocio);
-			statement.setString(2, EstadoTurnoEnum.CANCELADO.name());
+			statement.setDate(2, Date.valueOf(fromDate));
 			statement.setDate(3, Date.valueOf(fromDate));
-			statement.setDate(4, Date.valueOf(fromDate));
-			statement.setTime(5, Time.valueOf(fromTime));
+			statement.setTime(4, Time.valueOf(fromTime));
 
 			try (ResultSet resultSet = statement.executeQuery()) {
 				while (resultSet.next()) {
@@ -318,10 +314,7 @@ public class JdbcTurnoRepository implements TurnoRepository {
 		try (Connection connection = conexionDB.getConnection();
 				PreparedStatement statement = connection.prepareStatement(SELECT_ACTIVIDAD_MES_BY_BUSINESS_OWNER)) {
 
-			statement.setString(1, EstadoTurnoEnum.CANCELADO.name());
-			statement.setString(2, EstadoTurnoEnum.CANCELADO.name());
-			statement.setString(3, EstadoTurnoEnum.CANCELADO.name());
-			statement.setInt(4, idUsuario);
+			statement.setInt(1, idUsuario);
 
 			try (ResultSet resultSet = statement.executeQuery()) {
 				if (!resultSet.next()) {

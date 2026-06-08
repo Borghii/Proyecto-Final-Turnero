@@ -43,8 +43,13 @@ public class ActualizarServicioServlet extends HttpServlet {
 			response.sendRedirect(request.getContextPath() + "/admin/servicios");
 		} catch (ValidationException e) {
 			ViewRenderer.redirectWithError(request, response, "/admin/servicios", e.getMessage());
-		} catch (BusinessRuleException | AuthorizationException | ResourceNotFoundException
-				| InternalSystemException e) {
+		} catch (BusinessRuleException e) {
+			ViewRenderer.redirectWithError(request, response, "/admin/servicios", e.getMessage());
+		} catch (AuthorizationException e) {
+			ViewRenderer.redirectWithError(request, response, "/admin/servicios", e.getMessage());
+		} catch (ResourceNotFoundException e) {
+			ViewRenderer.redirectWithError(request, response, "/admin/servicios", e.getMessage());
+		} catch (InternalSystemException e) {
 			ViewRenderer.redirectWithError(request, response, "/admin/servicios", e.getMessage());
 		}
 	}

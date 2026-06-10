@@ -53,6 +53,8 @@ public class TurnoServiceImpl implements TurnoService {
 			throw new BusinessRuleException("El turno ya esta cancelado");
 		}
 
+		validarTurnoNoIniciado(turno);
+
 		turnoRepository.cancelarPorDuenioDeNegocio(idTurno, idUsuario);
 	}
 
@@ -68,6 +70,8 @@ public class TurnoServiceImpl implements TurnoService {
 		if (turno.getEstado() == EstadoTurnoEnum.CANCELADO) {
 			throw new BusinessRuleException("El turno ya esta cancelado");
 		}
+
+		validarTurnoNoIniciado(turno);
 
 		turnoRepository.cancelarPorCliente(idTurno, idUsuario);
 	}
@@ -216,6 +220,16 @@ public class TurnoServiceImpl implements TurnoService {
 
 	private boolean esHorarioReservable(LocalDate fecha, LocalTime horaInicio) {
 		return !fecha.equals(LocalDate.now()) || !horaInicio.isBefore(LocalTime.now());
+	}
+
+	private void validarTurnoNoIniciado(TurnoParaCancelacion turno) {
+		LocalDate hoy = LocalDate.now();
+		LocalTime ahora = LocalTime.now();
+
+		if (turno.getFecha().isBefore(hoy)
+				|| (turno.getFecha().equals(hoy) && !turno.getHoraInicio().isAfter(ahora))) {
+			throw new BusinessRuleException("No podes cancelar un turno que ya empezo o ya paso");
+		}
 	}
 
 	@Override

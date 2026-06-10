@@ -42,7 +42,8 @@ public class JdbcTurnoRepository implements TurnoRepository {
 
 	private static final String SELECT_FOR_CANCEL = """
 			SELECT t.id_turno, t.id_usuario AS id_usuario_cliente,
-				n.id_usuario AS id_usuario_duenio_negocio, t.estado
+				n.id_usuario AS id_usuario_duenio_negocio,
+				t.fecha, t.hora_inicio, t.estado
 			FROM turnos t
 			JOIN servicios s ON s.id_servicio = t.id_servicio
 			JOIN negocios n ON n.id_negocio = s.id_negocio
@@ -411,6 +412,8 @@ public class JdbcTurnoRepository implements TurnoRepository {
 					resultSet.getInt("id_turno"),
 					resultSet.getInt("id_usuario_cliente"),
 					resultSet.getInt("id_usuario_duenio_negocio"),
+					resultSet.getDate("fecha").toLocalDate(),
+					resultSet.getTime("hora_inicio").toLocalTime(),
 					EstadoTurnoEnum.valueOf(resultSet.getString("estado")));
 		} catch (SQLException e) {
 			throw new InternalSystemException();

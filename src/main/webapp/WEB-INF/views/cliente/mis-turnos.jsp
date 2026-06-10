@@ -1,5 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.time.LocalDate" %>
+<%@ page import="java.time.LocalTime" %>
 <%@ page import="shared.enums.EstadoTurnoEnum" %>
 <%@ page import="turno.dto.TurnoClienteDTO" %>
 <!doctype html>
@@ -48,6 +50,12 @@
 						</tr>
 						<%
 							for (TurnoClienteDTO t : turnos) {
+								boolean turnoYaPaso = t.getFecha().isBefore(LocalDate.now())
+										|| (t.getFecha().equals(LocalDate.now()) && !t.getHoraInicio().isAfter(LocalTime.now()));
+								String estadoMostrado = t.getEstado().name();
+								if (t.getEstado() != EstadoTurnoEnum.CANCELADO && turnoYaPaso) {
+									estadoMostrado = "REALIZADO";
+								}
 						%>
 							<tr>
 								<td><b><%= t.getNombreNegocio() %></b></td>
@@ -56,12 +64,16 @@
 								<td><%= t.getFecha() %></td>
 								<td><%= t.getHoraInicio() %></td>
 								<td><%= t.getHoraFin() %></td>
-								<td><%= t.getEstado() %></td>
+								<td><%= estadoMostrado %></td>
 								<td>
 									<%
 										if (t.getEstado() == EstadoTurnoEnum.CANCELADO) {
 									%>
 										Cancelado
+									<%
+										} else if (turnoYaPaso) {
+									%>
+										Turno pasado
 									<%
 										} else {
 									%>

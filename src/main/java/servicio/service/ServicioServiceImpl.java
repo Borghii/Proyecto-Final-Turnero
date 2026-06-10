@@ -46,6 +46,7 @@ public class ServicioServiceImpl implements ServicioService {
 	public void guardarServicio(int idUsuario, GuardarServicioRequest request) {
 		Negocio negocio = obtenerNegocioPorUsuario(idUsuario);
 		validarMultiploDe30(request.getDuracion());
+		validarNombreDisponible(request.getNombre(), negocio.getIdNegocio());
 
 		Servicio servicio = new Servicio(
 				request.getNombre(),
@@ -66,6 +67,8 @@ public class ServicioServiceImpl implements ServicioService {
 		if (existente.getIdNegocio() != negocio.getIdNegocio()) {
 			throw new AuthorizationException("No tenes permiso para editar este servicio.");
 		}
+
+		validarNombreDisponibleParaEditar(request.getNombre(), negocio.getIdNegocio(), request.getIdServicio());
 
 		if (turnoRepository.existsActivosByServicioFromDateTime(
 				request.getIdServicio(),
@@ -111,6 +114,18 @@ public class ServicioServiceImpl implements ServicioService {
 		if (duracion <= 0 || duracion % 30 != 0) {
 			throw new BusinessRuleException(
 					"La duracion del servicio debe ser un multiplo exacto de 30 minutos (ej: 30, 60, 90).");
+		}
+	}
+
+	private void validarNombreDisponible(String nombre, int idNegocio) {
+		if (servicioRepository.existsActivoByNombreAndNegocio(nombre, idNegocio)) {
+			throw new BusinessRuleException("Ya existe un servicio con ese nombre.");
+		}
+	}
+
+	private void validarNombreDisponibleParaEditar(String nombre, int idNegocio, int idServicio) {
+		if (servicioRepository.existsActivoByNombreAndNegocioExcludingId(nombre, idNegocio, idServicio)) {
+			throw new BusinessRuleException("Ya existe otro servicio con ese nombre.");
 		}
 	}
 

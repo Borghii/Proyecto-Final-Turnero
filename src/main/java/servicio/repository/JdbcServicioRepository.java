@@ -30,6 +30,25 @@ public class JdbcServicioRepository implements ServicioRepository {
 			AND activo = TRUE
 			""";
 
+	private static final String EXISTS_ACTIVO_BY_NOMBRE_AND_NEGOCIO = """
+			SELECT 1
+			FROM servicios
+			WHERE id_negocio = ?
+			AND activo = TRUE
+			AND LOWER(TRIM(nombre)) = LOWER(TRIM(?))
+			LIMIT 1
+			""";
+
+	private static final String EXISTS_ACTIVO_BY_NOMBRE_AND_NEGOCIO_EXCLUDING_ID = """
+			SELECT 1
+			FROM servicios
+			WHERE id_negocio = ?
+			AND activo = TRUE
+			AND id_servicio <> ?
+			AND LOWER(TRIM(nombre)) = LOWER(TRIM(?))
+			LIMIT 1
+			""";
+
 	private static final String INSERT_SERVICIO = """
 			INSERT INTO servicios (nombre, precio, duracion, id_negocio)
 			VALUES (?, ?, ?, ?)
@@ -83,6 +102,38 @@ public class JdbcServicioRepository implements ServicioRepository {
 				}
 
 				return Optional.of(mapServicio(resultSet));
+			}
+		} catch (SQLException e) {
+			throw new InternalSystemException();
+		}
+	}
+
+	@Override
+	public boolean existsActivoByNombreAndNegocio(String nombre, int idNegocio) {
+		try (Connection connection = conexionDB.getConnection();
+				PreparedStatement statement = connection.prepareStatement(EXISTS_ACTIVO_BY_NOMBRE_AND_NEGOCIO)) {
+			statement.setInt(1, idNegocio);
+			statement.setString(2, nombre);
+
+			try (ResultSet resultSet = statement.executeQuery()) {
+				return resultSet.next();
+			}
+		} catch (SQLException e) {
+			throw new InternalSystemException();
+		}
+	}
+
+	@Override
+	public boolean existsActivoByNombreAndNegocioExcludingId(String nombre, int idNegocio, int idServicio) {
+		try (Connection connection = conexionDB.getConnection();
+				PreparedStatement statement =
+						connection.prepareStatement(EXISTS_ACTIVO_BY_NOMBRE_AND_NEGOCIO_EXCLUDING_ID)) {
+			statement.setInt(1, idNegocio);
+			statement.setInt(2, idServicio);
+			statement.setString(3, nombre);
+
+			try (ResultSet resultSet = statement.executeQuery()) {
+				return resultSet.next();
 			}
 		} catch (SQLException e) {
 			throw new InternalSystemException();

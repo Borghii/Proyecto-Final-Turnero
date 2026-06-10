@@ -10,6 +10,10 @@ public interface ServicioRepository {
 
 	Optional<Servicio> findById(int idServicio);
 
+	boolean existsActivoByNombreAndNegocio(String nombre, int idNegocio);
+
+	boolean existsActivoByNombreAndNegocioExcludingId(String nombre, int idNegocio, int idServicio);
+
 	void save(Servicio servicio);
 
 	void update(Servicio servicio);

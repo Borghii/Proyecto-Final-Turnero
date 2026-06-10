@@ -24,22 +24,26 @@
 		}
 	}
 
-	private void opcionesHora(javax.servlet.jsp.JspWriter out, LocalTime valor, LocalTime desde,
-			LocalTime hasta) throws java.io.IOException {
-		out.print("<option value=\"\">--</option>");
+	private String opcionesHora(LocalTime valor, LocalTime desde, LocalTime hasta) {
+		StringBuilder opciones = new StringBuilder();
+		opciones.append("<option value=\"\">--</option>");
 
 		if (valor != null && (valor.isBefore(desde) || valor.isAfter(hasta))) {
-			out.print("<option value=\"" + valor + "\" selected>" + valor + "</option>");
+			opciones.append("<option value=\"").append(valor).append("\" selected>")
+					.append(valor).append("</option>");
 		}
 
 		for (LocalTime opcion = desde; ; opcion = opcion.plusMinutes(30)) {
 			String selected = opcion.equals(valor) ? " selected" : "";
-			out.print("<option value=\"" + opcion + "\"" + selected + ">" + opcion + "</option>");
+			opciones.append("<option value=\"").append(opcion).append("\"").append(selected)
+					.append(">").append(opcion).append("</option>");
 
 			if (opcion.equals(hasta)) {
 				break;
 			}
 		}
+
+		return opciones.toString();
 	}
 %>
 <!doctype html>
@@ -125,22 +129,22 @@
 										</td>
 										<td>
 											<select name="mananaDesde_<%= horario.getDia() %>">
-												<% opcionesHora(out, horario.getMananaDesde(), LocalTime.of(0, 0), LocalTime.of(12, 0)); %>
+												<%= opcionesHora(horario.getMananaDesde(), LocalTime.of(0, 0), LocalTime.of(12, 0)) %>
 											</select>
 										</td>
 										<td>
 											<select name="mananaHasta_<%= horario.getDia() %>">
-												<% opcionesHora(out, horario.getMananaHasta(), LocalTime.of(0, 0), LocalTime.of(12, 0)); %>
+												<%= opcionesHora(horario.getMananaHasta(), LocalTime.of(0, 0), LocalTime.of(12, 0)) %>
 											</select>
 										</td>
 										<td>
 											<select name="tardeDesde_<%= horario.getDia() %>">
-												<% opcionesHora(out, horario.getTardeDesde(), LocalTime.of(12, 0), LocalTime.of(23, 30)); %>
+												<%= opcionesHora(horario.getTardeDesde(), LocalTime.of(12, 0), LocalTime.of(23, 30)) %>
 											</select>
 										</td>
 										<td>
 											<select name="tardeHasta_<%= horario.getDia() %>">
-												<% opcionesHora(out, horario.getTardeHasta(), LocalTime.of(12, 0), LocalTime.of(23, 30)); %>
+												<%= opcionesHora(horario.getTardeHasta(), LocalTime.of(12, 0), LocalTime.of(23, 30)) %>
 											</select>
 										</td>
 									</tr>

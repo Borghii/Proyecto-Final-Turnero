@@ -6,33 +6,15 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Seleccionar Servicio</title>
-	<style>
-		.servicio-card {
-			border: 1px solid #ccc;
-			padding: 15px;
-			margin: 10px 0;
-			border-radius: 8px;
-			background-color: #f9f9f9;
-		}
-
-		.accion-link {
-			display: inline-block;
-			padding: 8px 12px;
-			background-color: #efefef;
-			border: 1px solid #aaa;
-			border-radius: 4px;
-			color: #111;
-			text-decoration: none;
-		}
-	</style>
+	<link rel="stylesheet" href="<%= request.getContextPath() %>/css/styles.css">
 </head>
 <body>
-	<table width="100%">
+	<table class="layout">
 		<tr>
-			<td width="180" valign="top">
+			<td class="sidebar">
 				<%@ include file="/WEB-INF/views/cliente/partials/sidebar.jspf" %>
 			</td>
-			<td valign="top">
+			<td class="contenido">
 				<h1>Paso 1: Elegi un servicio</h1>
 				<hr style="width: 50%; text-align: left; margin-left: 0;">
 

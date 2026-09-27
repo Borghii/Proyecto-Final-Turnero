@@ -1,4 +1,4 @@
-<table>
+<table class="menu">
 	<tr>
 		<td><a href="<%= request.getContextPath() %>/cliente/home">Home</a></td>
 	</tr>

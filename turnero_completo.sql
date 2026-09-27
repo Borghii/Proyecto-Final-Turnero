@@ -95,10 +95,14 @@ CREATE TABLE turnos (
 	hora_inicio TIME NOT NULL,
 	hora_fin TIME NOT NULL,
 	estado VARCHAR(30) NOT NULL DEFAULT 'CONFIRMADO',
+	reserva_activa TINYINT GENERATED ALWAYS AS (
+		CASE WHEN estado = 'CANCELADO' THEN NULL ELSE 1 END
+	) STORED,
 	INDEX idx_turnos_servicio_fecha_inicio (id_servicio, fecha, hora_inicio),
 	INDEX idx_turnos_usuario_fecha (id_usuario, fecha),
 	INDEX idx_turnos_fecha (fecha),
 	INDEX idx_turnos_estado (estado),
+	UNIQUE KEY uk_turnos_horario_activo (id_servicio, fecha, hora_inicio, reserva_activa),
 	CONSTRAINT chk_turnos_hora_fin_posterior CHECK (hora_fin > hora_inicio),
 	CONSTRAINT chk_turnos_estado_valido CHECK (estado IN ('CONFIRMADO', 'CANCELADO')),
 	CONSTRAINT fk_turnos_servicios

@@ -8,4 +8,8 @@ public class InternalSystemException extends RuntimeException {
 	public InternalSystemException() {
 		super(DEFAULT_MESSAGE);
 	}
+
+	public InternalSystemException(Throwable cause) {
+		super(DEFAULT_MESSAGE, cause);
+	}
 }

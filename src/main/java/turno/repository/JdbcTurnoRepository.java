@@ -11,9 +11,12 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import shared.db.ConexionDB;
 import shared.enums.EstadoTurnoEnum;
+import shared.exception.BusinessRuleException;
 import shared.exception.InternalSystemException;
 import turno.dto.ActividadMesDTO;
 import turno.dto.TurnoClienteDTO;
@@ -22,6 +25,7 @@ import turno.dto.TurnoParaCancelacion;
 import turno.entity.Turno;
 
 public class JdbcTurnoRepository implements TurnoRepository {
+	private static final Logger LOGGER = Logger.getLogger(JdbcTurnoRepository.class.getName());
 	private final ConexionDB conexionDB;
 
 	private static final String SELECT_BY_BUSINESS_OWNER_FROM_DATE_TIME = """
@@ -33,6 +37,7 @@ public class JdbcTurnoRepository implements TurnoRepository {
 			JOIN negocios n ON n.id_negocio = s.id_negocio
 			JOIN usuarios u ON u.id_usuario = t.id_usuario
 			WHERE n.id_usuario = ?
+			AND t.estado != 'CANCELADO'
 			AND (
 				t.fecha > ?
 				OR (t.fecha = ? AND t.hora_inicio >= ?)
@@ -136,6 +141,49 @@ public class JdbcTurnoRepository implements TurnoRepository {
 	private static final String INSERT_TURNO = """
 			INSERT INTO turnos (id_servicio, id_usuario, fecha, hora_inicio, hora_fin, estado)
 			VALUES (?, ?, ?, ?, ?, ?)
+			""";
+
+	private static final String SELECT_NEGOCIO_BY_SERVICIO = """
+			SELECT id_negocio
+			FROM servicios
+			WHERE id_servicio = ?
+			""";
+
+	private static final String LOCK_NEGOCIO = """
+			SELECT id_negocio
+			FROM negocios
+			WHERE id_negocio = ?
+			FOR UPDATE
+			""";
+
+	private static final String LOCK_USUARIO = """
+			SELECT id_usuario
+			FROM usuarios
+			WHERE id_usuario = ?
+			FOR UPDATE
+			""";
+
+	private static final String EXISTS_OVERLAP_BY_NEGOCIO = """
+			SELECT 1
+			FROM turnos t
+			JOIN servicios s ON s.id_servicio = t.id_servicio
+			WHERE s.id_negocio = ?
+			AND t.fecha = ?
+			AND t.estado != 'CANCELADO'
+			AND t.hora_inicio < ?
+			AND t.hora_fin > ?
+			LIMIT 1
+			""";
+
+	private static final String EXISTS_OVERLAP_BY_CLIENTE = """
+			SELECT 1
+			FROM turnos
+			WHERE id_usuario = ?
+			AND fecha = ?
+			AND estado != 'CANCELADO'
+			AND hora_inicio < ?
+			AND hora_fin > ?
+			LIMIT 1
 			""";
 
 	private static final String EXISTS_BY_SERVICIO_ID = """
@@ -343,8 +391,79 @@ public class JdbcTurnoRepository implements TurnoRepository {
 
 	@Override
 	public void save(Turno turno) {
-		try (Connection connection = conexionDB.getConnection();
-				PreparedStatement statement = connection.prepareStatement(INSERT_TURNO)) {
+		try (Connection connection = conexionDB.getConnection()) {
+			connection.setAutoCommit(false);
+
+			try {
+				int idNegocio = findNegocioIdByServicio(connection, turno.getIdServicio());
+				lockRegistro(connection, LOCK_NEGOCIO, idNegocio);
+				lockRegistro(connection, LOCK_USUARIO, turno.getIdUsuario());
+
+				if (existsOverlap(connection, EXISTS_OVERLAP_BY_NEGOCIO, idNegocio, turno)) {
+					throw new BusinessRuleException("El horario seleccionado ya no esta disponible");
+				}
+
+				if (existsOverlap(connection, EXISTS_OVERLAP_BY_CLIENTE, turno.getIdUsuario(), turno)) {
+					throw new BusinessRuleException("Ya tenes un turno reservado que se superpone con ese horario");
+				}
+
+				insertTurno(connection, turno);
+				connection.commit();
+			} catch (BusinessRuleException e) {
+				rollback(connection);
+				throw e;
+			} catch (SQLException e) {
+				rollback(connection);
+
+				if (e.getErrorCode() == 1062) {
+					throw new BusinessRuleException("El horario seleccionado ya no esta disponible");
+				}
+
+				LOGGER.log(Level.SEVERE, "No se pudo guardar el turno", e);
+				throw new InternalSystemException(e);
+			}
+		} catch (SQLException e) {
+			LOGGER.log(Level.SEVERE, "No se pudo guardar el turno", e);
+			throw new InternalSystemException(e);
+		}
+	}
+
+	private int findNegocioIdByServicio(Connection connection, int idServicio) throws SQLException {
+		try (PreparedStatement statement = connection.prepareStatement(SELECT_NEGOCIO_BY_SERVICIO)) {
+			statement.setInt(1, idServicio);
+
+			try (ResultSet resultSet = statement.executeQuery()) {
+				if (!resultSet.next()) {
+					throw new BusinessRuleException("El servicio seleccionado no existe");
+				}
+
+				return resultSet.getInt("id_negocio");
+			}
+		}
+	}
+
+	private void lockRegistro(Connection connection, String sql, int id) throws SQLException {
+		try (PreparedStatement statement = connection.prepareStatement(sql)) {
+			statement.setInt(1, id);
+			statement.executeQuery();
+		}
+	}
+
+	private boolean existsOverlap(Connection connection, String sql, int id, Turno turno) throws SQLException {
+		try (PreparedStatement statement = connection.prepareStatement(sql)) {
+			statement.setInt(1, id);
+			statement.setDate(2, Date.valueOf(turno.getFecha()));
+			statement.setTime(3, Time.valueOf(turno.getHoraFin()));
+			statement.setTime(4, Time.valueOf(turno.getHoraInicio()));
+
+			try (ResultSet resultSet = statement.executeQuery()) {
+				return resultSet.next();
+			}
+		}
+	}
+
+	private void insertTurno(Connection connection, Turno turno) throws SQLException {
+		try (PreparedStatement statement = connection.prepareStatement(INSERT_TURNO)) {
 			statement.setInt(1, turno.getIdServicio());
 			statement.setInt(2, turno.getIdUsuario());
 			statement.setDate(3, Date.valueOf(turno.getFecha()));
@@ -352,8 +471,14 @@ public class JdbcTurnoRepository implements TurnoRepository {
 			statement.setTime(5, Time.valueOf(turno.getHoraFin()));
 			statement.setString(6, turno.getEstado().name());
 			statement.executeUpdate();
-		} catch (SQLException e) {
-			throw new InternalSystemException();
+		}
+	}
+
+	private void rollback(Connection connection) {
+		try {
+			connection.rollback();
+		} catch (SQLException rollbackError) {
+			LOGGER.log(Level.SEVERE, "No se pudo revertir la reserva", rollbackError);
 		}
 	}
 

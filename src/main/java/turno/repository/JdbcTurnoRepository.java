@@ -37,6 +37,7 @@ public class JdbcTurnoRepository implements TurnoRepository {
 			JOIN negocios n ON n.id_negocio = s.id_negocio
 			JOIN usuarios u ON u.id_usuario = t.id_usuario
 			WHERE n.id_usuario = ?
+			AND t.estado != 'CANCELADO'
 			AND (
 				t.fecha > ?
 				OR (t.fecha = ? AND t.hora_inicio >= ?)

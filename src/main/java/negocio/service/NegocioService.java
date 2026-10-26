@@ -1,11 +1,19 @@
 package negocio.service;
 
-import negocio.repository.NegocioRepository;
+import negocio.dto.ActualizarNegocioRequest;
+import negocio.dto.NegocioConHorarios;
+import negocio.entity.Negocio;
 
-public class NegocioService {
-	private final NegocioRepository negocioRepository;
+import java.util.List;
 
-	public NegocioService(NegocioRepository negocioRepository) {
-		this.negocioRepository = negocioRepository;
-	}
+public interface NegocioService {
+	void createBusiness(Negocio negocio);
+
+	List<Negocio> obtenerTodosLosNegocios();
+
+	NegocioConHorarios obtenerNegocioConHorarios(int userId);
+
+	void actualizarNegocio(int userId, ActualizarNegocioRequest request);
+
+	Negocio obtenerNegocioPorUsuario(int idUsuario);
 }

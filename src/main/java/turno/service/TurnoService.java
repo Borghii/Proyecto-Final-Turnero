@@ -1,18 +1,28 @@
 package turno.service;
 
-import servicio.repository.ServicioRepository;
-import turno.repository.TurnoRepository;
-import usuario.repository.UsuarioRepository;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
 
-public class TurnoService {
-	private final TurnoRepository turnoRepository;
-	private final ServicioRepository servicioRepository;
-	private final UsuarioRepository usuarioRepository;
+import turno.dto.ActividadMesDTO;
+import turno.dto.ConfirmacionTurnoDTO;
+import turno.dto.TurnoClienteDTO;
+import turno.dto.TurnoConServicio;
 
-	public TurnoService(TurnoRepository turnoRepository, ServicioRepository servicioRepository,
-			UsuarioRepository usuarioRepository) {
-		this.turnoRepository = turnoRepository;
-		this.servicioRepository = servicioRepository;
-		this.usuarioRepository = usuarioRepository;
-	}
+public interface TurnoService {
+	List<TurnoConServicio> findUpcomingByBusinessOwner(int idUsuario);
+
+	void cancelarTurno(int idTurno, int idUsuario);
+
+	void cancelarTurnoPorCliente(int idTurno, int idUsuario);
+	
+	List<LocalTime> obtenerHorariosDisponibles(int idNegocio, int idServicio, LocalDate fecha);
+
+	ConfirmacionTurnoDTO obtenerConfirmacionTurno(int idNegocio, int idServicio, LocalDate fecha, LocalTime horaInicio);
+
+	void reservarTurno(int idNegocio, int idServicio, int idUsuario, LocalDate fecha, LocalTime horaInicio);
+
+	List<TurnoClienteDTO> obtenerTurnosPorCliente(int idUsuario);
+
+	ActividadMesDTO obtenerActividadDelMesPorDuenio(int idUsuario);
 }

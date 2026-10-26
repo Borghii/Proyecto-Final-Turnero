@@ -1,40 +1,48 @@
 package shared.context;
 
 import auth.service.AuthService;
+import auth.service.AuthServiceImpl;
+import negocio.repository.HorarioRepository;
+import negocio.repository.JdbcHorarioRepository;
 import negocio.repository.JdbcNegocioRepository;
 import negocio.repository.NegocioRepository;
 import negocio.service.NegocioService;
+import negocio.service.NegocioServiceImpl;
 import servicio.repository.JdbcServicioRepository;
 import servicio.repository.ServicioRepository;
 import servicio.service.ServicioService;
+import servicio.service.ServicioServiceImpl;
 import shared.db.ConexionDB;
 import turno.repository.JdbcTurnoRepository;
 import turno.repository.TurnoRepository;
 import turno.service.TurnoService;
+import turno.service.TurnoServiceImpl;
 import usuario.repository.JdbcUsuarioRepository;
 import usuario.repository.UsuarioRepository;
 import usuario.service.UsuarioService;
+import usuario.service.UsuarioServiceImpl;
 
 public final class AppContext {
 	private static final ConexionDB conexionDB = new ConexionDB(
-			getEnv("DB_URL", "jdbc:mysql://localhost:3306/test"),
+			getEnv("DB_URL", "jdbc:mysql://localhost:3306/turnero?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"),
 			getEnv("DB_USER", "root"),
 			getEnv("DB_PASSWORD", ""));
 
 	private static final UsuarioRepository usuarioRepository = new JdbcUsuarioRepository(conexionDB);
 	private static final NegocioRepository negocioRepository = new JdbcNegocioRepository(conexionDB);
+	private static final HorarioRepository horarioRepository = new JdbcHorarioRepository(conexionDB);
 	private static final ServicioRepository servicioRepository = new JdbcServicioRepository(conexionDB);
 	private static final TurnoRepository turnoRepository = new JdbcTurnoRepository(conexionDB);
 
 
-	private static final UsuarioService usuarioService = new UsuarioService(usuarioRepository);
-	private static final AuthService authService = new AuthService(usuarioService);
-	private static final NegocioService negocioService = new NegocioService(negocioRepository);
-	private static final ServicioService servicioService = new ServicioService(servicioRepository);
-	private static final TurnoService turnoService = new TurnoService(
-			turnoRepository,
-			servicioRepository,
-			usuarioRepository);
+	private static final NegocioService negocioService =
+			new NegocioServiceImpl(negocioRepository, horarioRepository, turnoRepository);
+	private static final UsuarioService usuarioService = new UsuarioServiceImpl(usuarioRepository);
+	private static final AuthService authService = new AuthServiceImpl(usuarioService, negocioService);
+	private static final ServicioService servicioService =
+			new ServicioServiceImpl(servicioRepository, negocioRepository, turnoRepository);
+	private static final TurnoService turnoService =
+			new TurnoServiceImpl(turnoRepository, servicioRepository, horarioRepository);
 
 	private AppContext() {
 	}

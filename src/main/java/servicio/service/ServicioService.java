@@ -1,11 +1,20 @@
 package servicio.service;
 
-import servicio.repository.ServicioRepository;
+import java.util.List;
 
-public class ServicioService {
-	private final ServicioRepository servicioRepository;
+import servicio.dto.ActualizarServicioRequest;
+import servicio.dto.EliminarServicioRequest;
+import servicio.dto.GuardarServicioRequest;
+import servicio.entity.Servicio;
 
-	public ServicioService(ServicioRepository servicioRepository) {
-		this.servicioRepository = servicioRepository;
-	}
+public interface ServicioService {
+	List<Servicio> buscarPorNegocio(int idNegocio);
+
+	List<Servicio> buscarPorDuenioDeNegocio(int idUsuario);
+
+	void guardarServicio(int idUsuario, GuardarServicioRequest request);
+
+	void actualizarServicio(int idUsuario, ActualizarServicioRequest request);
+
+	void eliminarServicio(int idUsuario, EliminarServicioRequest request);
 }

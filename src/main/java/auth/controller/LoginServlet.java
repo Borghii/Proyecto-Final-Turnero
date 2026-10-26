@@ -1,7 +1,6 @@
 package auth.controller;
 
 import java.io.IOException;
-import java.sql.SQLException;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -11,18 +10,21 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import auth.dto.LoginRequest;
+import auth.session.UserSession;
 import auth.service.AuthService;
 import shared.context.AppContext;
+import shared.enums.RolEnum;
 import shared.exception.AuthenticationException;
+import shared.exception.InternalSystemException;
 import shared.exception.ResourceNotFoundException;
 import shared.exception.ValidationException;
+import shared.web.ViewPaths;
+import shared.web.ViewRenderer;
 import usuario.entity.Usuario;
 
 @WebServlet("/login")
 public class LoginServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-	private static final int ROL_CLIENTE = 1;
-	private static final int ROL_ADMIN = 2;
 
 	private final AuthService authService = AppContext.getAuthService();
 
@@ -30,12 +32,19 @@ public class LoginServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		HttpSession session = request.getSession(false);
-		if (session != null && session.getAttribute("idUsuario") != null) {
-			response.sendRedirect(getHomeUrl(request, (Integer) session.getAttribute("idRolUsuario")));
+		if (UserSession.isAuthenticated(session)) {
+			RolEnum role = UserSession.getRole(session);
+			if (role == null) {
+				session.invalidate();
+				response.sendRedirect(request.getContextPath() + "/login");
+				return;
+			}
+
+			response.sendRedirect(getHomeUrl(request, role));
 			return;
 		}
 
-		request.getRequestDispatcher("/login.jsp").forward(request, response);
+		ViewRenderer.forward(request, response, ViewPaths.LOGIN);
 	}
 
 	@Override
@@ -48,43 +57,33 @@ public class LoginServlet extends HttpServlet {
 
 			Usuario usuario = authService.login(loginRequest);
 			HttpSession session = request.getSession(true);
-			session.setAttribute("idUsuario", usuario.getIdUsuario());
-			session.setAttribute("mailUsuario", usuario.getMail());
-			session.setAttribute("nombreUsuario", usuario.getNombre());
-			session.setAttribute("idRolUsuario", usuario.getIdRol());
+			UserSession.save(session, usuario);
 
-			response.sendRedirect(getHomeUrl(request, usuario.getIdRol()));
+			response.sendRedirect(getHomeUrl(request, usuario.getRole()));
 		} catch (ValidationException e) {
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			forwardLoginConError(request, response, e.getMessage());
+			ViewRenderer.forwardWithError(request, response, HttpServletResponse.SC_BAD_REQUEST,
+					ViewPaths.LOGIN, e.getMessage());
 		} catch (ResourceNotFoundException e) {
-			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-			forwardLoginConError(request, response, e.getMessage());
+			ViewRenderer.forwardWithError(request, response, HttpServletResponse.SC_NOT_FOUND,
+					ViewPaths.LOGIN, e.getMessage());
 		} catch (AuthenticationException e) {
-			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			forwardLoginConError(request, response, e.getMessage());
-		} catch (SQLException e) {
-			getServletContext().log("Error de base de datos durante el login", e);
-			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			forwardLoginConError(request, response, "No se pudo completar el login por un error de base de datos");
+			ViewRenderer.forwardWithError(request, response, HttpServletResponse.SC_UNAUTHORIZED,
+					ViewPaths.LOGIN, e.getMessage());
+		} catch (InternalSystemException e) {
+			ViewRenderer.forwardWithError(request, response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+					ViewPaths.LOGIN, e.getMessage());
 		}
 	}
 
-	private String getHomeUrl(HttpServletRequest request, int idRol) {
-		if (idRol == ROL_ADMIN) {
-			return request.getContextPath() + "/admin/home.jsp";
+	private String getHomeUrl(HttpServletRequest request, RolEnum role) {
+		if (role == RolEnum.ADMIN) {
+			return request.getContextPath() + "/admin/home";
 		}
 
-		if (idRol == ROL_CLIENTE) {
-			return request.getContextPath() + "/cliente/home.jsp";
+		if (role == RolEnum.CLIENTE) {
+			return request.getContextPath() + "/cliente/home";
 		}
 
 		return request.getContextPath() + "/login";
-	}
-
-	private void forwardLoginConError(HttpServletRequest request, HttpServletResponse response, String mensaje)
-			throws ServletException, IOException {
-		request.setAttribute("error", mensaje);
-		request.getRequestDispatcher("/login.jsp").forward(request, response);
 	}
 }

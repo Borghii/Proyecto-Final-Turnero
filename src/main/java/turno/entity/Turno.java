@@ -3,6 +3,8 @@ package turno.entity;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+import shared.enums.EstadoTurnoEnum;
+
 public class Turno {
 	private int idTurno;
 	private int idServicio;
@@ -10,10 +12,20 @@ public class Turno {
 	private LocalDate fecha;
 	private LocalTime horaInicio;
 	private LocalTime horaFin;
-	private String estado;
+	private EstadoTurnoEnum estado;
+
+	public Turno(int idServicio, int idUsuario, LocalDate fecha,
+			LocalTime horaInicio, LocalTime horaFin, EstadoTurnoEnum estado) {
+		this.idServicio = idServicio;
+		this.idUsuario = idUsuario;
+		this.fecha = fecha;
+		this.horaInicio = horaInicio;
+		this.horaFin = horaFin;
+		this.estado = estado;
+	}
 
 	public Turno(int idTurno, int idServicio, int idUsuario, LocalDate fecha,
-			LocalTime horaInicio, LocalTime horaFin, String estado) {
+			LocalTime horaInicio, LocalTime horaFin, EstadoTurnoEnum estado) {
 		this.idTurno = idTurno;
 		this.idServicio = idServicio;
 		this.idUsuario = idUsuario;
@@ -47,7 +59,7 @@ public class Turno {
 		return horaFin;
 	}
 
-	public String getEstado() {
+	public EstadoTurnoEnum getEstado() {
 		return estado;
 	}
 }

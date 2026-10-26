@@ -11,7 +11,7 @@ Camino Basico:
 6. El sistema revisa que el turno no este cancelado.
 7. El sistema marca el turno como cancelado.
 8. El sistema vuelve al panel principal.
-9. El turno queda visible con estado cancelado.
+9. El turno deja de aparecer en la lista de proximos turnos activos.
 
 Caminos Alternativos:
 

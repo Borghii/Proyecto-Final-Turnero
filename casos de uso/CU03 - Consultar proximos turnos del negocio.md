@@ -16,8 +16,7 @@ Caminos Alternativos:
 3.a.1 El sistema muestra el mensaje "No tenes proximos turnos".
 
 4.a Un turno ya esta cancelado.
-4.a.1 El sistema lo muestra como cancelado.
-4.a.2 El sistema no muestra la opcion de cancelarlo otra vez.
+4.a.1 El sistema no lo incluye entre los proximos turnos activos.
 
 3.b No se pueden cargar los turnos.
 3.b.1 El sistema muestra un mensaje de error.

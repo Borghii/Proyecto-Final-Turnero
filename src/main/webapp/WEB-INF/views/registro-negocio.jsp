@@ -4,6 +4,7 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Registro de Negocio</title>
+	<link rel="stylesheet" href="<%= request.getContextPath() %>/css/styles.css">
 </head>
 <body>
 	<center>

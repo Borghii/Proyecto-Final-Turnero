@@ -9,14 +9,15 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Mis Turnos</title>
+	<link rel="stylesheet" href="<%= request.getContextPath() %>/css/styles.css">
 </head>
 <body>
-	<table width="100%">
+	<table class="layout">
 		<tr>
-			<td width="180" valign="top">
+			<td class="sidebar">
 				<%@ include file="/WEB-INF/views/cliente/partials/sidebar.jspf" %>
 			</td>
-			<td valign="top">
+			<td class="contenido">
 				<h1>Mis Turnos Reservados</h1>
 				<p>Historial y proximas citas de tu cuenta.</p>
 
